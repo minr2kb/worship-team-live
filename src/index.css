@@ -1,13 +1,32 @@
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+	margin: 0;
+	font-family: "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
+		"Droid Sans", "Helvetica Neue", sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	background-color: #ececec;
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
+	/* background-image: url("https://images.squarespace-cdn.com/content/v1/5c0f697e9d5abb8c65cd6857/1579750164534-R8EY4XUPVEEK2RDO7JGE/image-asset.jpeg?format=1000w");
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-blend-mode: darken; */
+	/* filter: blur(8px);
+	-webkit-filter: blur(8px); */
+}
+
+body::-webkit-scrollbar {
+	display: none; /* Chrome, Safari, Opera*/
+}
+div::-webkit-scrollbar {
+	display: none; /* Chrome, Safari, Opera*/
+}
+
+div {
+	border: solid 1px blue;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+	font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+		monospace;
 }
