@@ -1,23 +1,19 @@
 import React from "react";
 import { Grid, Typography } from "@mui/material";
+import { use100vh } from "react-div-100vh";
 
 interface DashboardLayoutProps {
 	children: React.ReactNode;
 }
 
 const DashboardLayout: React.VFC<DashboardLayoutProps> = ({ children }) => {
+	const height = use100vh();
 	return (
-		<Grid
-			container
-			// alignItems={"center"}
-			// justifyContent={"center"}
-			height={"100vh"}
-			// minHeight="500px"
-		>
+		<Grid container height={height ? height : "100vh"}>
 			<Grid
 				container
 				width={"100vw"}
-				height={"100vh"}
+				height={height ? height : "100vh"}
 				justifyContent={"center"}
 				alignItems={"flex-end"}
 				position={"absolute"}

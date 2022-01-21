@@ -1,24 +1,26 @@
 import React from "react";
 import { Grid, Typography } from "@mui/material";
+import { use100vh } from "react-div-100vh";
 
 interface MainLayoutProps {
 	children: React.ReactNode;
 }
 
 const MainLayout: React.VFC<MainLayoutProps> = ({ children }) => {
+	const height = use100vh();
 	return (
 		<Grid
 			container
 			flexDirection={"column"}
 			alignItems={"center"}
 			justifyContent={"center"}
-			height={"100vh"}
+			height={height ? height : "100vh"}
 			minHeight="500px"
 		>
 			<Grid
 				container
 				width={"100vw"}
-				height={"100vh"}
+				height={height ? height : "100vh"}
 				justifyContent={"center"}
 				alignItems={"flex-end"}
 				position={"absolute"}

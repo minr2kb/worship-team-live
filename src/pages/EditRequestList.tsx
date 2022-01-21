@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CSS } from "@dnd-kit/utilities";
 import {
 	Box,
@@ -31,6 +31,9 @@ import {
 import DashboardLayout from "../layouts/DashboardLayout";
 import Card from "../components/Card";
 import { DragIndicator, Delete, Add, AddCircle } from "@mui/icons-material";
+import { use100vh } from "react-div-100vh";
+
+import { RequestSet } from "../interfaces/types";
 
 const SortableItem = (props: any) => {
 	const { items, setItems, id, value, isMobile } = props;
@@ -103,22 +106,33 @@ const SortableItem = (props: any) => {
 	);
 };
 
-const Test = () => {
+const sampleRequestSets: RequestSet[] = [
+	{
+		name: "기본 요청 리스트",
+		list: [
+			{ id: "1642688412052", text: "🔈 소리가 안나와요" },
+			{ id: "1642688412784", text: "🔇 뮤트 해주세요" },
+			{ id: "1642688414170", text: "👍 볼륨 올려주세요" },
+			{ id: "1642688468362", text: "👎 볼륨 내려주세요" },
+			{ id: "1642688469116", text: "🚗 템포 높여주세요" },
+			{ id: "1642688479933", text: "🐢 템포 내려주세요" },
+			{ id: "1642688485507", text: "💬 자막이 안나와요" },
+			{ id: "1642688491737", text: "⚠️ 여기 좀 봐주세요" },
+			{ id: "1642688497554", text: "✋ 한명만 와주세요" },
+		],
+	},
+];
+
+const EditRequestList = () => {
+	const height = use100vh();
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
 	const isTablet = useMediaQuery(theme.breakpoints.down("tablet"));
 	const [currentIndex, setCurrentIndex] = useState(-1);
-	const [items, setItems] = useState([
-		{ id: "1642688412052", text: "🔈 소리가 안나와요" },
-		{ id: "1642688412784", text: "🔇 뮤트 해주세요" },
-		{ id: "1642688414170", text: "👍 볼륨 올려주세요" },
-		{ id: "1642688468362", text: "👎 볼륨 내려주세요" },
-		{ id: "1642688469116", text: "🚗 템포 높여주세요" },
-		{ id: "1642688479933", text: "🐢 템포 내려주세요" },
-		{ id: "1642688485507", text: "💬 자막이 안나와요" },
-		{ id: "1642688491737", text: "⚠️ 여기 좀 봐주세요" },
-		{ id: "1642688497554", text: "✋ 한명만 와주세요" },
-	]);
+	const [requestSets, setRequestSets] =
+		useState<RequestSet[]>(sampleRequestSets);
+	const [currentRequestSet, setCurrentRequestSet] = useState<number>(0);
+	const [items, setItems] = useState<{ id: string; text: string }[]>([]);
 	const sensors = useSensors(
 		useSensor(PointerSensor),
 		useSensor(KeyboardSensor, {
@@ -131,6 +145,14 @@ const Test = () => {
 			},
 		})
 	);
+
+	useEffect(() => {
+		setRequestSets(sampleRequestSets);
+	}, []);
+
+	useEffect(() => {
+		if (requestSets) setItems(requestSets[currentRequestSet].list);
+	}, [currentRequestSet]);
 
 	const handleDragStart = (event: any) => {
 		if (!event.active) {
@@ -161,8 +183,9 @@ const Test = () => {
 					container
 					item
 					xs={isTablet ? 12 : 8}
-					height={"100vh"}
+					height={height ? height : "100vh"}
 					flexDirection={"column"}
+					// justifyContent={"center"}
 				>
 					<Box
 						style={{
@@ -185,17 +208,26 @@ const Test = () => {
 							flexDirection={"column"}
 							alignItems={"center"}
 						>
-							<Box mb={1}>
-								<NativeSelect
-									variant="filled"
-									fullWidth
-									defaultValue={0}
-								>
+							<Grid container mb={1} justifyContent="center">
+								<NativeSelect variant="filled" defaultValue={0}>
 									<option value={0}>기본 요청 리스트</option>
 									<option value={1}>청남교회 금요철야</option>
 									<option value={2}>청남교회 연습</option>
 								</NativeSelect>
-							</Box>
+								<Button
+									variant="contained"
+									color="info"
+									sx={{
+										color: "white",
+										p: "3px",
+										pl: 2,
+										pr: 2,
+										ml: 1,
+									}}
+								>
+									이름 수정
+								</Button>
+							</Grid>
 							<Grid container justifyContent={"center"} mb={1}>
 								<Button
 									variant="contained"
@@ -206,6 +238,17 @@ const Test = () => {
 									}}
 								>
 									리스트 추가
+								</Button>
+								<Button
+									variant="contained"
+									sx={{
+										p: "3px",
+										pl: 2,
+										pr: 2,
+										ml: 1,
+									}}
+								>
+									리스트 복제
 								</Button>
 								<Button
 									variant="contained"
@@ -222,7 +265,7 @@ const Test = () => {
 										])
 									}
 								>
-									요청 추가
+									리스트 삭제
 								</Button>
 							</Grid>
 						</Grid>
@@ -237,7 +280,7 @@ const Test = () => {
 								container
 								xs={12}
 								p={1}
-								mb={4}
+								mb={1}
 								sx={{
 									overflow: "auto",
 								}}
@@ -257,6 +300,38 @@ const Test = () => {
 											isMobile={isMobile}
 										/>
 									))}
+
+									<Grid item mb={1} xs={6}>
+										<Card
+											sx={{
+												p: 0,
+												height: "100%",
+												justifyContent: "center",
+											}}
+										>
+											<Grid
+												container
+												justifyContent={"center"}
+												alignItems={"center"}
+											>
+												<IconButton
+													onClick={() =>
+														setItems([
+															...items,
+															{
+																id: new Date()
+																	.getTime()
+																	.toString(),
+																text: "",
+															},
+														])
+													}
+												>
+													<Add />
+												</IconButton>
+											</Grid>
+										</Card>
+									</Grid>
 
 									<DragOverlay>
 										{currentIndex > -1 && (
@@ -308,6 +383,21 @@ const Test = () => {
 								</SortableContext>
 							</Grid>
 						</DndContext>
+						<Button
+							variant="contained"
+							color="info"
+							sx={{
+								color: "white",
+								p: "5px",
+								pl: 2,
+								pr: 2,
+								mr: 1,
+								ml: 1,
+								mb: 4,
+							}}
+						>
+							저장하기
+						</Button>
 					</Box>
 				</Grid>
 			</Grid>
@@ -315,4 +405,4 @@ const Test = () => {
 	);
 };
 
-export default Test;
+export default EditRequestList;

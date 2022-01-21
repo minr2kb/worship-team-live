@@ -22,9 +22,9 @@ div::-webkit-scrollbar {
 	display: none; /* Chrome, Safari, Opera*/
 }
 
-div {
+/* div {
 	border: solid 1px blue;
-}
+} */
 
 code {
 	font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",

@@ -8,6 +8,7 @@ import {
 	Link,
 	TextField,
 	IconButton,
+	NativeSelect,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
@@ -66,6 +67,14 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 					color="info"
 					sx={{ mt: 3 }}
 				/>
+
+				{!user?.isAnonymous && (
+					<NativeSelect fullWidth defaultValue={0} sx={{ mt: 5 }}>
+						<option value={0}>기본 요청 리스트</option>
+						<option value={1}>청남교회 금요철야</option>
+						<option value={2}>청남교회 연습</option>
+					</NativeSelect>
+				)}
 
 				<Button
 					fullWidth

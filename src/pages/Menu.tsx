@@ -58,7 +58,14 @@ const Menu: React.VFC<MenuProps> = ({ setMode }) => {
 						✋ 라이브 참가하기
 					</Button>
 					{!user?.isAnonymous && (
-						<Button fullWidth variant="contained" sx={{ mt: 2 }}>
+						<Button
+							fullWidth
+							variant="contained"
+							sx={{ mt: 2 }}
+							onClick={() =>
+								navigate("/edit", { replace: false })
+							}
+						>
 							📋 내 요청 편집하기
 						</Button>
 					)}

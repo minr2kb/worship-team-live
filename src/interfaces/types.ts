@@ -5,3 +5,8 @@ export interface Request {
 	to: string;
 	status: "unchecked" | "accepted" | "rejected";
 }
+
+export interface RequestSet {
+	name: string;
+	list: { id: string; text: string }[];
+}

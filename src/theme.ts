@@ -31,7 +31,7 @@ export const theme = createTheme({
 		values: {
 			xs: 0,
 			mobile: 425,
-			tablet: 768,
+			tablet: 600,
 		},
 	},
 	components: {
@@ -48,6 +48,22 @@ export const theme = createTheme({
 				},
 			},
 		},
+		MuiBottomNavigationAction: {
+			styleOverrides: {
+				root: {
+					"&.Mui-selected": {
+						color: "#007AFF",
+					},
+				},
+			},
+		},
+		MuiTextField: {
+			styleOverrides: {
+				root: {
+					border: "none",
+				},
+			},
+		},
 	},
 
 	palette: {
@@ -57,6 +73,7 @@ export const theme = createTheme({
 
 		secondary: {
 			main: "#505050",
+			light: "#C1C1C1",
 		},
 		error: {
 			main: "#FF3B30",
