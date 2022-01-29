@@ -2,7 +2,7 @@ import React from "react";
 import Card from "../layouts/CenterCard";
 import { Grid, Box, Typography, Button } from "@mui/material";
 import { useRecoilState } from "recoil";
-import { userRecoil } from "../states/recoil";
+import { userAuthRecoil } from "../states/recoil";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
@@ -14,7 +14,7 @@ interface MenuProps {
 }
 
 const Menu: React.VFC<MenuProps> = ({ setMode }) => {
-	const [user, setUser] = useRecoilState(userRecoil);
+	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
 	const navigate = useNavigate();
 
 	return (
@@ -34,12 +34,12 @@ const Menu: React.VFC<MenuProps> = ({ setMode }) => {
 					sx={{ mt: 6, mb: 3 }}
 				>
 					{"반갑습니다, "}
-					<b>{user?.displayName}</b>
-					{user?.isAnonymous && "게스트"}
+					<b>{userAuth?.displayName}</b>
+					{userAuth?.isAnonymous && "게스트"}
 					{" 님"}
 				</Typography>
 				<Box width="100%">
-					{!user?.isAnonymous && (
+					{!userAuth?.isAnonymous && (
 						<Button
 							fullWidth
 							variant="contained"
@@ -57,7 +57,7 @@ const Menu: React.VFC<MenuProps> = ({ setMode }) => {
 					>
 						✋ 라이브 참가하기
 					</Button>
-					{!user?.isAnonymous && (
+					{!userAuth?.isAnonymous && (
 						<Button
 							fullWidth
 							variant="contained"
@@ -92,7 +92,7 @@ const Menu: React.VFC<MenuProps> = ({ setMode }) => {
 							cursor: "pointer",
 						}}
 					>
-						{user?.isAnonymous ? "뒤로가기" : "로그아웃"}
+						{userAuth?.isAnonymous ? "뒤로가기" : "로그아웃"}
 					</Typography>
 				</div>
 			</Grid>

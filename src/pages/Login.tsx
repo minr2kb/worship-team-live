@@ -20,6 +20,16 @@ const Login: React.VFC = () => {
 			});
 	};
 
+	const signInAsGuest = () => {
+		signInAnonymously(auth)
+			.then(() => {
+				console.log("success");
+			})
+			.catch(error => {
+				console.log(error);
+			});
+	};
+
 	return (
 		<Card>
 			<Grid
@@ -84,15 +94,7 @@ const Login: React.VFC = () => {
 						<Button
 							fullWidth
 							variant="contained"
-							onClick={() =>
-								signInAnonymously(auth)
-									.then(() => {
-										console.log("success");
-									})
-									.catch(error => {
-										console.log(error);
-									})
-							}
+							onClick={signInAsGuest}
 						>
 							🕶 게스트 모드
 						</Button>

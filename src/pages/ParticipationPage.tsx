@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CenterCard from "../layouts/CenterCard";
 import {
 	Grid,
@@ -12,7 +13,19 @@ import {
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
-import { userRecoil } from "../states/recoil";
+import { userAuthRecoil, userRecoil } from "../states/recoil";
+import {
+	collection,
+	doc,
+	getDoc,
+	setDoc,
+	addDoc,
+	updateDoc,
+	increment,
+	serverTimestamp,
+} from "firebase/firestore";
+import { db } from "../firebase";
+import { RequestSet } from "../interfaces/types";
 
 interface ParticipationPageProps {
 	setMode: React.Dispatch<
@@ -21,7 +34,33 @@ interface ParticipationPageProps {
 }
 
 const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
+	const navigate = useNavigate();
 	const [user, setUser] = useRecoilState(userRecoil);
+	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
+	const [currentRequestSet, setCurrentRequestSet] = useState<number>(0);
+	const [liveCode, setLiveCode] = useState("");
+	const [position, setPosition] = useState("");
+
+	const startLive = () => {
+		if (userAuth?.uid) {
+			updateDoc(doc(collection(db, "Live"), liveCode), {
+				[`participants.${userAuth?.uid}`]: {
+					position: position,
+					isVerified: true,
+					requestSet: currentRequestSet,
+				},
+			})
+				.then(res => {
+					navigate(`/live/${liveCode}`);
+				})
+				.catch(err =>
+					window.alert(
+						"종료되었거나 존재하지 않는 라이브 코드입니다."
+					)
+				);
+		}
+	};
+
 	return (
 		<CenterCard>
 			<Grid
@@ -54,6 +93,8 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 					label="라이브 코드"
 					variant="standard"
 					color="info"
+					value={liveCode}
+					onChange={e => setLiveCode(e.target.value)}
 				/>
 				<TextField
 					fullWidth
@@ -61,12 +102,26 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 					variant="standard"
 					color="info"
 					sx={{ mt: 3 }}
+					value={position}
+					onChange={e => setPosition(e.target.value)}
 				/>
-				{!user?.isAnonymous && (
-					<NativeSelect fullWidth defaultValue={0} sx={{ mt: 5 }}>
-						<option value={0}>기본 요청 리스트</option>
-						<option value={1}>청남교회 금요철야</option>
-						<option value={2}>청남교회 연습</option>
+				{!userAuth?.isAnonymous && (
+					<NativeSelect
+						fullWidth
+						variant="filled"
+						value={currentRequestSet}
+						sx={{ mt: 5 }}
+						onChange={e =>
+							setCurrentRequestSet(Number(e.target.value))
+						}
+					>
+						{user?.requestList.map(
+							(requestSet: RequestSet, idx: number) => (
+								<option key={idx} value={idx}>
+									{requestSet.name}
+								</option>
+							)
+						)}
 					</NativeSelect>
 				)}
 
@@ -75,6 +130,7 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 					variant="contained"
 					color="info"
 					sx={{ mt: 5, mb: 6, color: "white" }}
+					onClick={startLive}
 				>
 					시작하기
 				</Button>

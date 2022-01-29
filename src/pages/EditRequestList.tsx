@@ -1,5 +1,25 @@
-import React, { useEffect, useState } from "react";
-import { CSS } from "@dnd-kit/utilities";
+import React, {
+	useState,
+	forwardRef,
+	ReactChildren,
+	Ref,
+	useEffect,
+} from "react";
+import {
+	DndContext,
+	closestCenter,
+	MouseSensor,
+	TouchSensor,
+	DragOverlay,
+	useSensor,
+	useSensors,
+} from "@dnd-kit/core";
+import {
+	arrayMove,
+	SortableContext,
+	rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import toast, { Toaster } from "react-hot-toast";
 import {
 	Box,
 	Grid,
@@ -10,54 +30,55 @@ import {
 	IconButton,
 	Typography,
 	NativeSelect,
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogContentText,
+	DialogActions,
 } from "@mui/material";
-import {
-	DndContext,
-	closestCenter,
-	KeyboardSensor,
-	PointerSensor,
-	TouchSensor,
-	useSensor,
-	useSensors,
-	DragOverlay,
-} from "@dnd-kit/core";
-import {
-	arrayMove,
-	SortableContext,
-	sortableKeyboardCoordinates,
-	rectSortingStrategy,
-	useSortable,
-} from "@dnd-kit/sortable";
-import DashboardLayout from "../layouts/DashboardLayout";
-import Card from "../components/Card";
-import { DragIndicator, Delete, Add, AddCircle } from "@mui/icons-material";
+
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { use100vh } from "react-div-100vh";
 
-import { RequestSet } from "../interfaces/types";
+import { Request, RequestSet } from "../interfaces/types";
+import { DragIndicator, Delete, Add } from "@mui/icons-material";
+
+import { collection, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase";
+
+import { useRecoilState } from "recoil";
+import { userRecoil, userAuthRecoil } from "../states/recoil";
 
 const SortableItem = (props: any) => {
 	const { items, setItems, id, value, isMobile } = props;
+	const sortable = useSortable({ id: id });
 	const {
 		attributes,
 		listeners,
+		isDragging,
 		setNodeRef,
 		transform,
 		transition,
-		isDragging,
-	} = useSortable({ id: id });
+	} = sortable;
 
-	const style = {
-		transform: CSS.Transform.toString(transform),
-		transition: transition,
-		zIndex: isDragging ? "500" : "auto",
+	const style: React.CSSProperties = {
+		transformOrigin: "0 0",
 		opacity: isDragging ? 0.3 : 1,
+		backgroundColor: "white",
+		boxShadow: "4px 4px 10px rgba(0,0,0,0.1)",
+		borderRadius: "7px",
+		paddingTop: 7,
+		paddingBottom: 7,
+		transform: CSS.Transform.toString(transform),
+		transition,
 	};
 
 	const editText = (
 		e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
 	) => {
 		setItems(
-			items.map((item: { id: string; text: string }) =>
+			items.map((item: Request) =>
 				item.id == id
 					? {
 							id: id,
@@ -69,102 +90,89 @@ const SortableItem = (props: any) => {
 	};
 
 	const deleteItem = () => {
-		setItems(
-			items.filter((item: { id: string; text: string }) => item.id !== id)
-		);
+		setItems(items.filter((item: Request) => item.id !== id));
 	};
 
 	return (
-		<Grid item xs={6} ref={setNodeRef} style={style} mb={1}>
-			<Card>
-				<Grid
-					container
-					alignItems={"center"}
-					justifyContent={"space-between"}
+		<div ref={setNodeRef} style={style}>
+			<div
+				style={{
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "space-between",
+				}}
+			>
+				<IconButton
+					sx={{ touchAction: "manipulation" }}
+					{...listeners}
+					{...attributes}
 				>
-					<IconButton {...listeners} {...attributes}>
-						<DragIndicator fontSize="small" color="secondary" />
-					</IconButton>
-					{isMobile && (
-						<IconButton onClick={deleteItem}>
-							<Delete fontSize="small" color="secondary" />
-						</IconButton>
-					)}
-					<TextField
-						variant="standard"
-						value={value}
-						onChange={editText}
-					/>
-					{!isMobile && (
-						<IconButton onClick={deleteItem}>
-							<Delete fontSize="small" color="secondary" />
-						</IconButton>
-					)}
-				</Grid>
-			</Card>
-		</Grid>
+					<DragIndicator fontSize="small" color="secondary" />
+				</IconButton>
+
+				<TextField
+					variant="standard"
+					value={value}
+					onChange={editText}
+				/>
+				<IconButton onClick={deleteItem}>
+					<Delete fontSize="small" color="secondary" />
+				</IconButton>
+			</div>
+		</div>
 	);
 };
 
-const sampleRequestSets: RequestSet[] = [
-	{
-		name: "기본 요청 리스트",
-		list: [
-			{ id: "1642688412052", text: "🔈 소리가 안나와요" },
-			{ id: "1642688412784", text: "🔇 뮤트 해주세요" },
-			{ id: "1642688414170", text: "👍 볼륨 올려주세요" },
-			{ id: "1642688468362", text: "👎 볼륨 내려주세요" },
-			{ id: "1642688469116", text: "🚗 템포 높여주세요" },
-			{ id: "1642688479933", text: "🐢 템포 내려주세요" },
-			{ id: "1642688485507", text: "💬 자막이 안나와요" },
-			{ id: "1642688491737", text: "⚠️ 여기 좀 봐주세요" },
-			{ id: "1642688497554", text: "✋ 한명만 와주세요" },
-		],
-	},
-];
+function GridContainer({
+	children,
+	columns,
+}: {
+	children: React.ReactNode;
+	columns: number;
+}) {
+	return (
+		<div
+			style={{
+				display: "grid",
+				gridTemplateColumns: `repeat(${columns}, 1fr)`,
+				gridGap: 10,
+				// padding: 10,
+			}}
+		>
+			{children}
+		</div>
+	);
+}
 
 const EditRequestList = () => {
 	const height = use100vh();
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
 	const isTablet = useMediaQuery(theme.breakpoints.down("tablet"));
-	const [currentIndex, setCurrentIndex] = useState(-1);
-	const [requestSets, setRequestSets] =
-		useState<RequestSet[]>(sampleRequestSets);
-	const [currentRequestSet, setCurrentRequestSet] = useState<number>(0);
-	const [items, setItems] = useState<{ id: string; text: string }[]>([]);
-	const sensors = useSensors(
-		useSensor(PointerSensor),
-		useSensor(KeyboardSensor, {
-			coordinateGetter: sortableKeyboardCoordinates,
-		}),
-		useSensor(TouchSensor, {
-			activationConstraint: {
-				delay: 250,
-				tolerance: 5,
-			},
-		})
+	const [user, setUser] = useRecoilState(userRecoil);
+	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
+	const [open, setOpen] = React.useState(false);
+	const [requestSets, setRequestSets] = useState<RequestSet[]>(
+		user?.requestList || []
 	);
+	const [items, setItems] = useState<Request[]>([]);
+	const [currentRequestSet, setCurrentRequestSet] = useState<number>(0);
+	const [editNameMode, setEditNameMode] = useState<
+		"new" | "duplicate" | "edit"
+	>("new");
+	const [requestSetName, setRequestSetName] = useState<string>("");
+	const [error, setError] = useState<string | null>(null);
 
-	useEffect(() => {
-		setRequestSets(sampleRequestSets);
-	}, []);
+	const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
 
-	useEffect(() => {
-		if (requestSets) setItems(requestSets[currentRequestSet].list);
-	}, [currentRequestSet]);
-
-	const handleDragStart = (event: any) => {
+	function handleDragStart(event: any) {
 		if (!event.active) {
 			return;
 		}
-		setCurrentIndex(items.map(item => item.id).indexOf(event.active.id));
-	};
+	}
 
-	const handleDragEnd = (event: any) => {
-		setCurrentIndex(-1);
+	function handleDragEnd(event: any) {
 		const { active, over } = event;
-		console.log(active, over);
 
 		if (active.id !== over.id) {
 			setItems(items => {
@@ -174,234 +182,339 @@ const EditRequestList = () => {
 				return arrayMove(items, oldIndex, newIndex);
 			});
 		}
+	}
+
+	const saveAll = () => {
+		const toastId = toast.loading("저장중...");
+		console.log({ ...user, requestList: requestSets });
+		updateDoc(doc(collection(db, "User"), userAuth?.uid), {
+			requestList: requestSets,
+		})
+			.then(res => {
+				if (user) setUser({ ...user, requestList: requestSets });
+				toast.dismiss(toastId);
+				toast.success("모든 변경사항이 저장되었습니다");
+			})
+			.catch(err => {
+				toast.dismiss(toastId);
+				toast.error("저장에 실패하였습니다");
+			});
 	};
 
+	useEffect(() => {
+		if (requestSets) setItems(requestSets[currentRequestSet].list);
+	}, [currentRequestSet]);
+
+	useEffect(() => {
+		setRequestSets(
+			requestSets.map((requestSet, idx) =>
+				idx == currentRequestSet
+					? { ...requestSet, list: items }
+					: requestSet
+			)
+		);
+	}, [items]);
+
 	return (
-		<DashboardLayout>
-			<Grid container justifyContent={"center"} width="100%">
-				<Grid
-					container
-					item
-					xs={isTablet ? 12 : 8}
-					height={height ? height : "100vh"}
-					flexDirection={"column"}
-					// justifyContent={"center"}
-				>
-					<Box
-						style={{
-							display: "flex",
-							flexDirection: "column",
-							alignItems: "stretch",
-							minHeight: 0,
-						}}
-					>
-						<Typography
-							variant="h1"
-							textAlign={"center"}
-							mt={3}
-							mb={1}
+		<>
+			<Toaster position="bottom-center" />
+			<Grid
+				justifyContent={"center"}
+				width="100vw"
+				height={height ? height : "100vh"}
+				sx={{ overflowY: "auto" }}
+				p={2}
+			>
+				<Typography variant="h1" textAlign={"center"} mt={3} mb={1}>
+					수정하기
+				</Typography>
+				<Grid container flexDirection={"column"} alignItems={"center"}>
+					<Grid container mb={1} justifyContent="center">
+						<NativeSelect
+							variant="filled"
+							value={currentRequestSet}
+							onChange={e =>
+								setCurrentRequestSet(Number(e.target.value))
+							}
 						>
-							수정하기
-						</Typography>
-						<Grid
-							container
-							flexDirection={"column"}
-							alignItems={"center"}
-						>
-							<Grid container mb={1} justifyContent="center">
-								<NativeSelect variant="filled" defaultValue={0}>
-									<option value={0}>기본 요청 리스트</option>
-									<option value={1}>청남교회 금요철야</option>
-									<option value={2}>청남교회 연습</option>
-								</NativeSelect>
-								<Button
-									variant="contained"
-									color="info"
-									sx={{
-										color: "white",
-										p: "3px",
-										pl: 2,
-										pr: 2,
-										ml: 1,
-									}}
-								>
-									이름 수정
-								</Button>
-							</Grid>
-							<Grid container justifyContent={"center"} mb={1}>
-								<Button
-									variant="contained"
-									sx={{
-										p: "3px",
-										pl: 2,
-										pr: 2,
-									}}
-								>
-									리스트 추가
-								</Button>
-								<Button
-									variant="contained"
-									sx={{
-										p: "3px",
-										pl: 2,
-										pr: 2,
-										ml: 1,
-									}}
-								>
-									리스트 복제
-								</Button>
-								<Button
-									variant="contained"
-									sx={{ p: "3px", pl: 2, pr: 2, ml: 1 }}
-									onClick={() =>
-										setItems([
-											...items,
-											{
-												id: new Date()
-													.getTime()
-													.toString(),
-												text: "",
-											},
-										])
-									}
-								>
-									리스트 삭제
-								</Button>
-							</Grid>
-						</Grid>
-						<DndContext
-							sensors={sensors}
-							collisionDetection={closestCenter}
-							onDragEnd={handleDragEnd}
-							onDragStart={handleDragStart}
-						>
-							<Grid
-								item
-								container
-								xs={12}
-								p={1}
-								mb={1}
-								sx={{
-									overflow: "auto",
-								}}
-								columnSpacing={1}
-							>
-								<SortableContext
-									items={items.map(item => item.id)}
-									strategy={rectSortingStrategy}
-								>
-									{items.map((request, idx) => (
-										<SortableItem
-											key={request.id}
-											id={request.id}
-											value={request.text}
-											items={items}
-											setItems={setItems}
-											isMobile={isMobile}
-										/>
-									))}
-
-									<Grid item mb={1} xs={6}>
-										<Card
-											sx={{
-												p: 0,
-												height: "100%",
-												justifyContent: "center",
-											}}
-										>
-											<Grid
-												container
-												justifyContent={"center"}
-												alignItems={"center"}
-											>
-												<IconButton
-													onClick={() =>
-														setItems([
-															...items,
-															{
-																id: new Date()
-																	.getTime()
-																	.toString(),
-																text: "",
-															},
-														])
-													}
-												>
-													<Add />
-												</IconButton>
-											</Grid>
-										</Card>
-									</Grid>
-
-									<DragOverlay>
-										{currentIndex > -1 && (
-											<Grid item mb={1}>
-												<Card>
-													<Grid
-														container
-														alignItems={"center"}
-														justifyContent={
-															"space-between"
-														}
-													>
-														<IconButton>
-															<DragIndicator
-																fontSize="small"
-																color="secondary"
-															/>
-														</IconButton>
-														{isMobile && (
-															<IconButton>
-																<Delete
-																	fontSize="small"
-																	color="secondary"
-																/>
-															</IconButton>
-														)}
-
-														<TextField
-															variant="standard"
-															value={
-																items[
-																	currentIndex
-																].text
-															}
-														/>
-														{!isMobile && (
-															<IconButton>
-																<Delete
-																	fontSize="small"
-																	color="secondary"
-																/>
-															</IconButton>
-														)}
-													</Grid>
-												</Card>
-											</Grid>
-										)}
-									</DragOverlay>
-								</SortableContext>
-							</Grid>
-						</DndContext>
+							{requestSets.map(
+								(requestSet: RequestSet, idx: number) => (
+									<option key={idx} value={idx}>
+										{requestSet.name}
+									</option>
+								)
+							)}
+						</NativeSelect>
 						<Button
 							variant="contained"
 							color="info"
 							sx={{
 								color: "white",
-								p: "5px",
+								p: "3px",
 								pl: 2,
 								pr: 2,
-								mr: 1,
 								ml: 1,
-								mb: 4,
+							}}
+							onClick={() => {
+								setEditNameMode("edit");
+								setRequestSetName(
+									requestSets[currentRequestSet].name
+								);
+								setError(null);
+								setOpen(true);
 							}}
 						>
-							저장하기
+							이름 수정
 						</Button>
-					</Box>
+					</Grid>
+					<Grid container justifyContent={"center"} mb={1}>
+						<Button
+							variant="contained"
+							sx={{
+								p: "3px",
+								pl: 2,
+								pr: 2,
+							}}
+							onClick={() => {
+								setEditNameMode("new");
+								setRequestSetName("");
+								setError(null);
+								setOpen(true);
+							}}
+						>
+							리스트 추가
+						</Button>
+						<Button
+							variant="contained"
+							sx={{
+								p: "3px",
+								pl: 2,
+								pr: 2,
+								ml: 1,
+							}}
+							onClick={() => {
+								setEditNameMode("duplicate");
+								setRequestSetName(
+									`${requestSets[currentRequestSet].name}의 카피`
+								);
+								setError(null);
+								setOpen(true);
+							}}
+						>
+							리스트 복제
+						</Button>
+						<Button
+							variant="contained"
+							sx={{ p: "3px", pl: 2, pr: 2, ml: 1 }}
+							onClick={() => {
+								if (
+									window.confirm(
+										"현재 리스트를 삭제하시겠습니까?"
+									)
+								) {
+									if (requestSets.length < 2) {
+										window.alert(
+											"최소 한 개 이상의 리스트가 필요합니다."
+										);
+									} else {
+										setRequestSets(
+											requestSets.filter(
+												(requestSet, idx) =>
+													idx !== currentRequestSet
+											)
+										);
+										setCurrentRequestSet(0);
+									}
+								}
+							}}
+						>
+							리스트 삭제
+						</Button>
+					</Grid>
 				</Grid>
+				<Box
+					sx={{
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+					mt={1}
+				>
+					<DndContext
+						sensors={sensors}
+						collisionDetection={closestCenter}
+						onDragStart={handleDragStart}
+						onDragEnd={handleDragEnd}
+						// onDragCancel={handleDragCancel}
+					>
+						<SortableContext
+							items={items.map(item => item.id)}
+							strategy={rectSortingStrategy}
+						>
+							<GridContainer columns={2}>
+								{items.map((item, index) => (
+									<SortableItem
+										key={item.id}
+										id={item.id}
+										index={index}
+										value={item.text}
+										items={items}
+										setItems={setItems}
+										isMobile={isMobile}
+									/>
+								))}
+
+								<Grid
+									container
+									justifyContent={"center"}
+									sx={{
+										backgroundColor: "white",
+										boxShadow:
+											"4px 4px 10px rgba(0,0,0,0.1)",
+										borderRadius: "7px",
+										paddingTop: "5px",
+										paddingBottom: "5px",
+									}}
+								>
+									<IconButton
+										onClick={() =>
+											setItems([
+												...items,
+												{
+													id: new Date()
+														.getTime()
+														.toString(),
+													text: "",
+												},
+											])
+										}
+									>
+										<Add />
+									</IconButton>
+								</Grid>
+								{items.length < 1 && (
+									<div style={{ visibility: "hidden" }}>
+										<SortableItem
+											key={0}
+											id={0}
+											index={1}
+											value={""}
+											items={items}
+											setItems={setItems}
+											isMobile={isMobile}
+										/>
+									</div>
+								)}
+							</GridContainer>
+						</SortableContext>
+
+						{/* <DragOverlay adjustScale={true}>
+				{activeId ? <Item url={activeId} /> : null}
+			</DragOverlay> */}
+					</DndContext>
+
+					<Button
+						fullWidth={isMobile}
+						variant="contained"
+						color="info"
+						sx={{
+							color: "white",
+							mt: 2,
+							p: 1,
+							pl: 4,
+							pr: 4,
+						}}
+						onClick={saveAll}
+					>
+						저장하기
+					</Button>
+				</Box>
 			</Grid>
-		</DashboardLayout>
+			<Dialog
+				fullWidth
+				maxWidth={"mobile"}
+				open={open}
+				onClose={() => setOpen(false)}
+			>
+				<DialogContent>
+					<TextField
+						sx={{ mt: 2 }}
+						autoFocus
+						label="리스트 이름"
+						fullWidth
+						color="info"
+						value={requestSetName}
+						onChange={e => setRequestSetName(e.currentTarget.value)}
+						error={error ? true : false}
+						helperText={error || ""}
+					/>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						variant="text"
+						sx={{
+							boxShadow: "none",
+							p: 1,
+						}}
+						onClick={() => setOpen(false)}
+					>
+						취소
+					</Button>
+					<Button
+						variant="text"
+						sx={{
+							boxShadow: "none",
+							p: 1,
+
+							color: "#007AFF",
+						}}
+						onClick={() => {
+							if (requestSetName.length < 1) {
+								setError("리스트의 이름을 입력해주세요.");
+							} else if (
+								requestSets
+									.map(req => req.name)
+									.indexOf(requestSetName) > -1
+							) {
+								setError("이미 존재하는 이름입니다.");
+							} else {
+								if (editNameMode == "new") {
+									setCurrentRequestSet(requestSets.length);
+									setRequestSets([
+										...requestSets,
+										{ name: requestSetName, list: [] },
+									]);
+								} else if (editNameMode == "duplicate") {
+									setCurrentRequestSet(requestSets.length);
+									setRequestSets([
+										...requestSets,
+										{
+											name: requestSetName,
+											list: requestSets[currentRequestSet]
+												.list,
+										},
+									]);
+								} else if (editNameMode == "edit") {
+									setRequestSets(
+										requestSets.map((requestSet, idx) =>
+											idx == currentRequestSet
+												? {
+														...requestSet,
+														name: requestSetName,
+												  }
+												: requestSet
+										)
+									);
+								}
+								setOpen(false);
+							}
+						}}
+					>
+						{editNameMode == "edit" ? "변경" : "생성"}
+					</Button>
+				</DialogActions>
+			</Dialog>
+		</>
 	);
 };
 

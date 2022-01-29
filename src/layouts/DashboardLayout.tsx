@@ -8,6 +8,7 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.VFC<DashboardLayoutProps> = ({ children }) => {
 	const height = use100vh();
+
 	return (
 		<Grid container height={height ? height : "100vh"}>
 			<Grid

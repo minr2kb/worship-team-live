@@ -8,6 +8,7 @@ import {
 	browserLocalPersistence,
 	GoogleAuthProvider,
 } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -28,5 +29,6 @@ export const app = initializeApp(firebaseConfig);
 export const analytics = getAnalytics(app);
 export const provider = new GoogleAuthProvider();
 export const auth = getAuth();
+export const db = getFirestore();
 
 auth.useDeviceLanguage();

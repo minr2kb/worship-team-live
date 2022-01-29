@@ -7,6 +7,7 @@ body {
 	background-color: #ececec;
 	-ms-overflow-style: none; /* IE and Edge */
 	scrollbar-width: none; /* Firefox */
+	overflow: hidden;
 	/* background-image: url("https://images.squarespace-cdn.com/content/v1/5c0f697e9d5abb8c65cd6857/1579750164534-R8EY4XUPVEEK2RDO7JGE/image-asset.jpeg?format=1000w");
 	background-repeat: no-repeat;
 	background-size: cover;
