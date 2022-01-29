@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Card from "../components/Card";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
 	Grid,
 	Box,
@@ -47,6 +47,9 @@ import {
 	increment,
 	serverTimestamp,
 	onSnapshot,
+	arrayUnion,
+	deleteDoc,
+	deleteField,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { Bars } from "react-loader-spinner";
@@ -99,6 +102,7 @@ const defaultRequestSet = {
 const LiveDashboard = () => {
 	const { id } = useParams();
 	const theme = useTheme();
+	const navigate = useNavigate();
 	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
 	const isTablet = useMediaQuery(theme.breakpoints.down("tablet"));
 	const [user, setUser] = useRecoilState(userRecoil);
@@ -109,6 +113,7 @@ const LiveDashboard = () => {
 	const [page, setPage] = useState(0);
 	const [myRequests, setMyRequests] = useState<Request[]>([]);
 	const [notFound, setNotFound] = useState(false);
+	const [alertCount, setalertCount] = useState(0);
 
 	const height = use100vh();
 
@@ -142,6 +147,87 @@ const LiveDashboard = () => {
 		return "";
 	};
 
+	const sendRequest = (text: string) => {
+		if (receiver) {
+			const toastId = toast.loading("요청 전송중...");
+			updateDoc(doc(collection(db, "Live"), id), {
+				requests: arrayUnion({
+					id: new Date().getTime().toString(),
+					text: text,
+					from: userAuth?.uid,
+					to: receiver,
+					status: "unchecked",
+				}),
+			})
+				.then(res => {
+					toast.dismiss(toastId);
+					toast.success("요청이 전송되었습니다");
+				})
+				.catch(err => toast.error("요청 전송에 실패했습니다"));
+		} else {
+			toast.error("수신자를 선택해주세요");
+		}
+	};
+
+	const changeRequestState = (
+		reqId: string,
+		status: "unchecked" | "accepted" | "rejected"
+	) => {
+		const toastId = toast.loading("응답 전송중...");
+		updateDoc(doc(collection(db, "Live"), id), {
+			requests: liveData?.requests.map((request: RequestPacket) =>
+				request.id == reqId ? { ...request, status: status } : request
+			),
+		})
+			.then(res => {
+				toast.dismiss(toastId);
+				toast.success("응답이 전송되었습니다");
+			})
+			.catch(err => {
+				console.log(err);
+				toast.error("응답 전송에 실패했습니다");
+			});
+	};
+
+	const deleteLive = () => {
+		//TODO
+		if (window.confirm("정말로 라이브를 종료하시겠습니까?")) {
+			updateDoc(doc(collection(db, "User"), userAuth?.uid), {
+				currentLive: null,
+			})
+				.then(res => {
+					deleteDoc(doc(collection(db, "Live"), id)).then(res =>
+						navigate("/")
+					);
+				})
+				.catch(err => {
+					console.log(err);
+				});
+		}
+	};
+
+	const exitLive = () => {
+		if (window.confirm("정말로 라이브를 나가시겠습니까?")) {
+			updateDoc(doc(collection(db, "User"), userAuth?.uid), {
+				currentLive: null,
+			})
+				.then(res => {
+					updateDoc(doc(collection(db, "Live"), id), {
+						[`participants.${userAuth?.uid}`]: deleteField(),
+					})
+						.then(res => {
+							navigate("/");
+						})
+						.catch(err => {
+							console.log(err);
+						});
+				})
+				.catch(err => {
+					console.log(err);
+				});
+		}
+	};
+
 	useEffect(() => {
 		const unsub = onSnapshot(
 			doc(collection(db, "Live"), id),
@@ -149,6 +235,18 @@ const LiveDashboard = () => {
 				console.log(doc.data());
 				if (doc.exists()) {
 					setLiveData(doc.data() as Live);
+					const newAlertCount = doc
+						.data()
+						?.requests.filter(
+							(request: RequestPacket) =>
+								request.status == "unchecked" &&
+								(request.to == userAuth?.uid ||
+									request.to == "ALL")
+						).length;
+					if (newAlertCount > alertCount) {
+						toast("🚨 새로운 요청이 있습니다!");
+					}
+					setalertCount(newAlertCount);
 					setIsLoading(false);
 				} else {
 					console.log("Not Found");
@@ -156,7 +254,10 @@ const LiveDashboard = () => {
 					setIsLoading(false);
 				}
 			},
-			err => console.log(err)
+			err => {
+				console.log(err);
+				setNotFound(true);
+			}
 		);
 
 		return () => {
@@ -184,6 +285,9 @@ const LiveDashboard = () => {
 			) : notFound ? (
 				<MainLayout>
 					<p>종료되었거나 없는 라이브 입니다.</p>
+					<Link href="/" color={"secondary"} fontWeight="bold">
+						메인페이지로
+					</Link>
 				</MainLayout>
 			) : (
 				<DashboardLayout>
@@ -223,8 +327,15 @@ const LiveDashboard = () => {
 												pl: 2,
 												pr: 2,
 											}}
+											onClick={
+												liveData?.host == userAuth?.uid
+													? deleteLive
+													: exitLive
+											}
 										>
-											종료하기
+											{liveData?.host == userAuth?.uid
+												? "종료하기"
+												: "나가기"}
 										</Button>
 									</Grid>
 									<Card>
@@ -328,7 +439,8 @@ const LiveDashboard = () => {
 												>
 													{liveData?.createdTime
 														.toDate()
-														.toTimeString()}
+														.toTimeString()
+														.slice(0, 8)}
 												</Typography>
 											</Card>
 										</Grid>
@@ -354,13 +466,7 @@ const LiveDashboard = () => {
 												backgroundColor: "#FF3B30",
 											}}
 										>
-											{
-												liveData?.requests.filter(
-													request =>
-														request.status ==
-														"unchecked"
-												).length
-											}
+											{alertCount}
 										</Box>
 									</Grid>
 								</Grid>
@@ -386,126 +492,137 @@ const LiveDashboard = () => {
 												overflow: "auto",
 											}}
 										>
-											{liveData?.requests.map(
-												(request: RequestPacket) => (
-													<Box
-														mr={3}
-														key={request._id}
-													>
-														<Card
-															sx={{
-																mb: spacing,
-																backgroundColor:
-																	requestCardColor(
-																		request.status,
-																		request.from ==
-																			userAuth?.uid
-																	),
-															}}
-														>
-															<Grid
-																container
-																justifyContent={
-																	"space-between"
-																}
-																alignItems="center"
-																sx={{
-																	flexWrap:
-																		"nowrap",
-																}}
+											{[...(liveData?.requests || [])]
+												.reverse()
+												.map(
+													(
+														request: RequestPacket,
+														idx: number
+													) =>
+														(request.from ==
+															userAuth?.uid ||
+															request.to ==
+																userAuth?.uid ||
+															request.to ==
+																"ALL") && (
+															<Box
+																mr={3}
+																key={idx}
 															>
-																<Grid
-																	// container
-																	alignItems={
-																		"center"
-																	}
-																>
-																	<Typography variant="h4">
-																		{
-																			request.text
-																		}
-																	</Typography>
-
-																	<Grid
-																		container
-																		alignItems={
-																			"center"
-																		}
-																		mt="2px"
-																		mr={1}
-																	>
-																		<Typography
-																			variant="body2"
-																			sx={{
-																				wordWrap:
-																					"normal",
-																				mr: 1,
-																			}}
-																		>
-																			{request.from ==
-																			userAuth?.uid ? (
-																				<b>
-																					나
-																				</b>
-																			) : request.from ==
-																			  "ALL" ? (
-																				<b>
-																					ALL
-																				</b>
-																			) : (
-																				request.from
-																			)}
-																		</Typography>
-																		<ArrowRightAlt
-																			sx={{
-																				fontSize: 15,
-																			}}
-																			color="secondary"
-																		/>
-																		<Typography
-																			variant="body2"
-																			sx={{
-																				wordWrap:
-																					"normal",
-																				ml: 1,
-																			}}
-																		>
-																			{" "}
-																			{request.to ==
-																			userAuth?.uid ? (
-																				<b>
-																					나
-																				</b>
-																			) : request.to ==
-																			  "ALL" ? (
-																				<b>
-																					ALL
-																				</b>
-																			) : (
-																				request.to
-																			)}
-																		</Typography>
-																	</Grid>
-																</Grid>
-																<Box
+																<Card
 																	sx={{
-																		display:
-																			"flex",
-																		alignItems:
-																			"center",
-																		flexWrap:
-																			"nowrap",
+																		mb: spacing,
+																		backgroundColor:
+																			requestCardColor(
+																				request.status,
+																				request.from ==
+																					userAuth?.uid
+																			),
 																	}}
 																>
-																	{requestStatus(
-																		request.status,
-																		request.from ==
-																			userAuth?.uid
-																	) ? (
-																		<Typography
-																			variant="body1"
+																	<Grid
+																		container
+																		justifyContent={
+																			"space-between"
+																		}
+																		alignItems="center"
+																		sx={{
+																			flexWrap:
+																				"nowrap",
+																		}}
+																	>
+																		<Grid
+																			// container
+																			alignItems={
+																				"center"
+																			}
+																		>
+																			<Typography variant="h4">
+																				{
+																					request.text
+																				}
+																			</Typography>
+
+																			<Grid
+																				container
+																				alignItems={
+																					"center"
+																				}
+																				mt="2px"
+																				mr={
+																					1
+																				}
+																			>
+																				<Typography
+																					variant="body2"
+																					sx={{
+																						wordWrap:
+																							"normal",
+																						mr: 1,
+																					}}
+																				>
+																					{request.from ==
+																					userAuth?.uid ? (
+																						<b>
+																							나
+																						</b>
+																					) : request.from ==
+																					  "ALL" ? (
+																						<b>
+																							ALL
+																						</b>
+																					) : (
+																						liveData
+																							?.participants[
+																							request
+																								.from
+																						]
+																							.position
+																					)}
+																				</Typography>
+																				<ArrowRightAlt
+																					sx={{
+																						fontSize: 15,
+																					}}
+																					color="secondary"
+																				/>
+																				<Typography
+																					variant="body2"
+																					sx={{
+																						wordWrap:
+																							"normal",
+																						ml: 1,
+																					}}
+																				>
+																					{" "}
+																					{request.to ==
+																					userAuth?.uid ? (
+																						<b>
+																							나
+																						</b>
+																					) : request.to ==
+																					  "ALL" ? (
+																						<b>
+																							ALL
+																						</b>
+																					) : (
+																						liveData
+																							?.participants[
+																							request
+																								.to
+																						]
+																							.position
+																					)}
+																				</Typography>
+																			</Grid>
+																		</Grid>
+																		<Box
 																			sx={{
-																				whiteSpace:
+																				display:
+																					"flex",
+																				alignItems:
+																					"center",
+																				flexWrap:
 																					"nowrap",
 																			}}
 																		>
@@ -513,53 +630,77 @@ const LiveDashboard = () => {
 																				request.status,
 																				request.from ==
 																					userAuth?.uid
+																			) ? (
+																				<Typography
+																					variant="body1"
+																					sx={{
+																						whiteSpace:
+																							"nowrap",
+																					}}
+																				>
+																					{requestStatus(
+																						request.status,
+																						request.from ==
+																							userAuth?.uid
+																					)}
+																				</Typography>
+																			) : (
+																				<>
+																					<Button
+																						color={
+																							"success"
+																						}
+																						variant="contained"
+																						sx={{
+																							color: "white",
+																							p: 1,
+																							minWidth: 0,
+																							mr: 1,
+																						}}
+																						onClick={() =>
+																							changeRequestState(
+																								request.id,
+																								"accepted"
+																							)
+																						}
+																					>
+																						<Check
+																							sx={{
+																								fontSize: 18,
+																							}}
+																						/>
+																					</Button>
+																					<Button
+																						color={
+																							"error"
+																						}
+																						variant="contained"
+																						sx={{
+																							color: "white",
+																							p: 1,
+																							minWidth: 0,
+																						}}
+																						onClick={() =>
+																							changeRequestState(
+																								request.id,
+																								"rejected"
+																							)
+																						}
+																					>
+																						<Close
+																							sx={{
+																								fontSize: 18,
+																							}}
+																						/>
+																					</Button>
+																				</>
 																			)}
-																		</Typography>
-																	) : (
-																		<>
-																			<Button
-																				color={
-																					"success"
-																				}
-																				variant="contained"
-																				sx={{
-																					color: "white",
-																					p: 1,
-																					minWidth: 0,
-																					mr: 1,
-																				}}
-																			>
-																				<Check
-																					sx={{
-																						fontSize: 18,
-																					}}
-																				/>
-																			</Button>
-																			<Button
-																				color={
-																					"error"
-																				}
-																				variant="contained"
-																				sx={{
-																					color: "white",
-																					p: 1,
-																					minWidth: 0,
-																				}}
-																			>
-																				<Close
-																					sx={{
-																						fontSize: 18,
-																					}}
-																				/>
-																			</Button>
-																		</>
-																	)}
-																</Box>
-															</Grid>
-														</Card>
-													</Box>
-												)
-											)}
+																		</Box>
+																	</Grid>
+																</Card>
+															</Box>
+														)
+												)}
 										</Box>
 									</Box>
 								</Grid>
@@ -752,7 +893,9 @@ const LiveDashboard = () => {
 														pb: 3,
 													}}
 													onClick={() =>
-														toast(request.text)
+														sendRequest(
+															request.text
+														)
 													}
 												>
 													{request.text}

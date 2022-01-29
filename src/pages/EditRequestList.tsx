@@ -35,6 +35,7 @@ import {
 	DialogContent,
 	DialogContentText,
 	DialogActions,
+	Tooltip,
 } from "@mui/material";
 
 import { useSortable } from "@dnd-kit/sortable";

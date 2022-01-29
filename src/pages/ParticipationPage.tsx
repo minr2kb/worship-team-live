@@ -42,22 +42,26 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 	const [position, setPosition] = useState("");
 
 	const startLive = () => {
-		if (userAuth?.uid) {
-			updateDoc(doc(collection(db, "Live"), liveCode), {
-				[`participants.${userAuth?.uid}`]: {
-					position: position,
-					isVerified: true,
-					requestSet: currentRequestSet,
-				},
-			})
-				.then(res => {
-					navigate(`/live/${liveCode}`);
+		if (position.length < 1) {
+			window.alert("포지션을 입력해주세요.");
+		} else {
+			if (userAuth?.uid) {
+				updateDoc(doc(collection(db, "Live"), liveCode), {
+					[`participants.${userAuth?.uid}`]: {
+						position: position,
+						isVerified: true,
+						requestSet: currentRequestSet,
+					},
 				})
-				.catch(err =>
-					window.alert(
-						"종료되었거나 존재하지 않는 라이브 코드입니다."
-					)
-				);
+					.then(res => {
+						navigate(`/live/${liveCode}`);
+					})
+					.catch(err =>
+						window.alert(
+							"종료되었거나 존재하지 않는 라이브 코드입니다."
+						)
+					);
+			}
 		}
 	};
 

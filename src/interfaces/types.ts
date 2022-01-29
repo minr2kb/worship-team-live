@@ -3,7 +3,7 @@ import { Timestamp } from "firebase/firestore";
 type Uid = string;
 
 export interface RequestPacket {
-	_id: string;
+	id: string;
 	text: string;
 	from: Uid;
 	to: Uid;

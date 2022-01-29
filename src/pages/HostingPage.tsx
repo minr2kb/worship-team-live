@@ -10,6 +10,7 @@ import {
 	TextField,
 	IconButton,
 	NativeSelect,
+	Tooltip,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
@@ -43,58 +44,62 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 	const [position, setPosition] = useState("");
 
 	const startLive = () => {
-		if (userAuth?.uid) {
-			getDoc(doc(db, "Live", "total"))
-				.then(docSnap => {
-					if (docSnap.exists()) {
-						const code = docSnap.data().count;
-						updateDoc(doc(db, "Live", "total"), {
-							count: increment(1),
-						});
+		if (position.length < 1) {
+			window.alert("포지션을 입력해주세요.");
+		} else {
+			if (userAuth?.uid) {
+				getDoc(doc(db, "Live", "total"))
+					.then(docSnap => {
+						if (docSnap.exists()) {
+							const code = docSnap.data().count;
+							updateDoc(doc(db, "Live", "total"), {
+								count: increment(1),
+							});
 
-						addDoc(collection(db, "Live"), {
-							title: liveTitle,
-							code: code,
-							password: null,
-							host: userAuth?.uid,
-							createdTime: serverTimestamp(),
-							participants: {
-								[userAuth?.uid]: {
-									position: position,
-									isVerified: true,
-									requestSet: currentRequestSet,
+							addDoc(collection(db, "Live"), {
+								title: liveTitle,
+								code: code,
+								password: null,
+								host: userAuth?.uid,
+								createdTime: serverTimestamp(),
+								participants: {
+									[userAuth?.uid]: {
+										position: position,
+										isVerified: true,
+										requestSet: currentRequestSet,
+									},
 								},
-							},
-							requests: [],
-						}).then(docRef => {
-							console.log(
-								"Document written with ID: ",
-								docRef.id
-							);
+								requests: [],
+							}).then(docRef => {
+								console.log(
+									"Document written with ID: ",
+									docRef.id
+								);
 
-							updateDoc(
-								doc(collection(db, "User"), userAuth?.uid),
-								{
-									currentLive: docRef.id,
-								}
-							)
-								.then(res => {
-									if (user)
-										setUser({
-											...user,
-											currentLive: docRef.id,
-										});
-									navigate(`/live/${docRef.id}`);
-								})
-								.catch(err => {
-									console.log(err);
-								});
-						});
-					} else {
-						console.log("No such document!");
-					}
-				})
-				.catch(err => console.log(err));
+								updateDoc(
+									doc(collection(db, "User"), userAuth?.uid),
+									{
+										currentLive: docRef.id,
+									}
+								)
+									.then(res => {
+										if (user)
+											setUser({
+												...user,
+												currentLive: docRef.id,
+											});
+										navigate(`/live/${docRef.id}`);
+									})
+									.catch(err => {
+										console.log(err);
+									});
+							});
+						} else {
+							console.log("No such document!");
+						}
+					})
+					.catch(err => console.log(err));
+			}
 		}
 	};
 
@@ -167,16 +172,21 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 						)}
 					</NativeSelect>
 				)}
-
-				<Button
-					fullWidth
-					variant="contained"
-					color="info"
-					sx={{ mt: 5, mb: 6, color: "white" }}
-					onClick={startLive}
+				<Tooltip
+					title="⏰ 24시간 이후에는 자동 삭제가 되는 점 참고해주세요!"
+					placement="bottom"
+					arrow
 				>
-					시작하기
-				</Button>
+					<Button
+						fullWidth
+						variant="contained"
+						color="info"
+						sx={{ mt: 5, mb: 6, color: "white" }}
+						onClick={startLive}
+					>
+						시작하기
+					</Button>
+				</Tooltip>
 			</Grid>
 		</CenterCard>
 	);

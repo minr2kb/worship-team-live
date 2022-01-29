@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
 import MainLayout from "../layouts/MainLayout";
 import Login from "./Login";
 import Menu from "./Menu";
@@ -25,6 +26,7 @@ const Main: React.VFC = () => {
 
 	return (
 		<>
+			<Toaster position="bottom-center" />
 			<MainLayout>
 				{isLoading ? (
 					<>
