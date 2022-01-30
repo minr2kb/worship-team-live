@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Card from "../components/Card";
@@ -18,6 +18,9 @@ import {
 	Paper,
 	BottomNavigation,
 	BottomNavigationAction,
+	Dialog,
+	DialogContent,
+	DialogActions,
 } from "@mui/material";
 import {
 	ContentCopy,
@@ -50,6 +53,8 @@ import {
 	arrayUnion,
 	deleteDoc,
 	deleteField,
+	query,
+	where,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { Bars } from "react-loader-spinner";
@@ -113,7 +118,11 @@ const LiveDashboard = () => {
 	const [page, setPage] = useState(0);
 	const [myRequests, setMyRequests] = useState<Request[]>([]);
 	const [notFound, setNotFound] = useState(false);
-	const [alertCount, setalertCount] = useState(0);
+	const [alertCount, setAlertCount] = useState(0);
+	const [detailedRequest, setDetailedRequest] = useState("");
+	const [open, setOpen] = useState(false);
+	const [liveTitle, setLiveTitle] = useState("");
+	const alertCountRef = useRef(0);
 
 	const height = use100vh();
 
@@ -185,6 +194,7 @@ const LiveDashboard = () => {
 			})
 			.catch(err => {
 				console.log(err);
+				toast.dismiss(toastId);
 				toast.error("응답 전송에 실패했습니다");
 			});
 	};
@@ -228,11 +238,15 @@ const LiveDashboard = () => {
 		}
 	};
 
+	const updateAlertCount = (newAlertCount: number) => {
+		alertCountRef.current = newAlertCount;
+		setAlertCount(newAlertCount);
+	};
+
 	useEffect(() => {
 		const unsub = onSnapshot(
 			doc(collection(db, "Live"), id),
 			doc => {
-				console.log(doc.data());
 				if (doc.exists()) {
 					setLiveData(doc.data() as Live);
 					const newAlertCount = doc
@@ -240,13 +254,17 @@ const LiveDashboard = () => {
 						?.requests.filter(
 							(request: RequestPacket) =>
 								request.status == "unchecked" &&
+								request.from !== userAuth?.uid &&
 								(request.to == userAuth?.uid ||
 									request.to == "ALL")
 						).length;
-					if (newAlertCount > alertCount) {
+					// console.log("alertCountRef.current", alertCountRef.current);
+					// console.log("newAlertCount", newAlertCount);
+
+					if (newAlertCount - alertCountRef.current > 0) {
 						toast("🚨 새로운 요청이 있습니다!");
 					}
-					setalertCount(newAlertCount);
+					updateAlertCount(newAlertCount);
 					setIsLoading(false);
 				} else {
 					console.log("Not Found");
@@ -257,6 +275,7 @@ const LiveDashboard = () => {
 			err => {
 				console.log(err);
 				setNotFound(true);
+				setIsLoading(false);
 			}
 		);
 
@@ -346,24 +365,31 @@ const LiveDashboard = () => {
 											<Typography variant="h4">
 												라이브 정보
 											</Typography>
-											<div
-												style={{
-													display: "flex",
-													alignItems: "center",
-													cursor: "pointer",
-												}}
-												onClick={() => {
-													//수정하기 코드
-												}}
-											>
-												<Edit
-													color="secondary"
-													sx={{ fontSize: 14 }}
-												/>
-												<Typography variant="body2">
-													수정하기
-												</Typography>
-											</div>
+											{liveData?.host ==
+												userAuth?.uid && (
+												<div
+													style={{
+														display: "flex",
+														alignItems: "center",
+														cursor: "pointer",
+													}}
+													onClick={() => {
+														setLiveTitle(
+															liveData?.title ||
+																""
+														);
+														setOpen(true);
+													}}
+												>
+													<Edit
+														color="secondary"
+														sx={{ fontSize: 14 }}
+													/>
+													<Typography variant="body2">
+														수정하기
+													</Typography>
+												</div>
+											)}
 										</Grid>
 										<Typography variant="body1">
 											제목: {liveData?.title}
@@ -577,7 +603,8 @@ const LiveDashboard = () => {
 																							request
 																								.from
 																						]
-																							.position
+																							?.position ||
+																						"(없음)"
 																					)}
 																				</Typography>
 																				<ArrowRightAlt
@@ -611,7 +638,8 @@ const LiveDashboard = () => {
 																							request
 																								.to
 																						]
-																							.position
+																							?.position ||
+																						"(없음)"
 																					)}
 																				</Typography>
 																			</Grid>
@@ -853,6 +881,12 @@ const LiveDashboard = () => {
 													"4px 4px 10px rgba(0,0,0,0.1)",
 												borderRadius: "7px",
 											}}
+											value={detailedRequest}
+											onChange={e =>
+												setDetailedRequest(
+													e.target.value
+												)
+											}
 										/>
 
 										<Button
@@ -863,6 +897,9 @@ const LiveDashboard = () => {
 												p: 2,
 												minWidth: 0,
 											}}
+											onClick={() =>
+												sendRequest(detailedRequest)
+											}
 										>
 											<Send
 												sx={{
@@ -921,7 +958,6 @@ const LiveDashboard = () => {
 								showLabels
 								value={page}
 								onChange={(event, newValue) => {
-									console.log(newValue);
 									setPage(newValue);
 								}}
 							>
@@ -938,6 +974,64 @@ const LiveDashboard = () => {
 					)}
 				</DashboardLayout>
 			)}
+			<Dialog
+				fullWidth
+				maxWidth={"mobile"}
+				open={open}
+				onClose={() => setOpen(false)}
+			>
+				<DialogContent>
+					<TextField
+						sx={{ mt: 2 }}
+						autoFocus
+						label="라이브 제목"
+						fullWidth
+						color="info"
+						value={liveTitle}
+						onChange={e => setLiveTitle(e.currentTarget.value)}
+					/>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						variant="text"
+						sx={{
+							boxShadow: "none",
+							p: 1,
+						}}
+						onClick={() => setOpen(false)}
+					>
+						취소
+					</Button>
+					<Button
+						variant="text"
+						sx={{
+							boxShadow: "none",
+							p: 1,
+
+							color: "#007AFF",
+						}}
+						onClick={() => {
+							let toastId = toast.loading("변경중...");
+							updateDoc(doc(collection(db, "Live"), id), {
+								title: liveTitle,
+							})
+								.then(res => {
+									toast.dismiss(toastId);
+									toast.success("변경되었습니다");
+									setOpen(false);
+								})
+								.catch(err => {
+									console.log(err);
+									toast.dismiss(toastId);
+									toast.error("변경에 실패했습니다");
+									setOpen(false);
+								});
+						}}
+					>
+						{"변경"}
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</>
 	);
 };

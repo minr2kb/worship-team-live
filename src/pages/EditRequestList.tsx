@@ -43,13 +43,16 @@ import { CSS } from "@dnd-kit/utilities";
 import { use100vh } from "react-div-100vh";
 
 import { Request, RequestSet } from "../interfaces/types";
-import { DragIndicator, Delete, Add } from "@mui/icons-material";
+import { DragIndicator, Delete, Add, ArrowBack } from "@mui/icons-material";
 
 import { collection, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 import { useRecoilState } from "recoil";
 import { userRecoil, userAuthRecoil } from "../states/recoil";
+import LiveDashboard from "./LiveDashboard";
+import DashboardLayout from "../layouts/DashboardLayout";
+import { useNavigate } from "react-router-dom";
 
 const SortableItem = (props: any) => {
 	const { items, setItems, id, value, isMobile } = props;
@@ -148,6 +151,7 @@ function GridContainer({
 const EditRequestList = () => {
 	const height = use100vh();
 	const theme = useTheme();
+	const navigate = useNavigate();
 	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
 	const isTablet = useMediaQuery(theme.breakpoints.down("tablet"));
 	const [user, setUser] = useRecoilState(userRecoil);
@@ -217,18 +221,43 @@ const EditRequestList = () => {
 	}, [items]);
 
 	return (
-		<>
+		<DashboardLayout>
 			<Toaster position="bottom-center" />
 			<Grid
 				justifyContent={"center"}
 				width="100vw"
-				height={height ? height : "100vh"}
+				height={height ? height * 0.95 : "100vh"}
 				sx={{ overflowY: "auto" }}
 				p={2}
 			>
-				<Typography variant="h1" textAlign={"center"} mt={3} mb={1}>
-					수정하기
-				</Typography>
+				<Box>
+					<Grid
+						container
+						justifyContent={isMobile ? "space-between" : "center"}
+						mt={3}
+						mb={3}
+					>
+						{isMobile && (
+							<IconButton
+								sx={{ p: 0 }}
+								onClick={() => {
+									navigate("/");
+								}}
+							>
+								<ArrowBack color="secondary" />
+							</IconButton>
+						)}
+						<Typography variant="h1" textAlign={"center"}>
+							요청 편집하기
+						</Typography>
+						{isMobile && (
+							<IconButton sx={{ p: 0, visibility: "hidden" }}>
+								<ArrowBack color="secondary" />
+							</IconButton>
+						)}
+					</Grid>
+				</Box>
+
 				<Grid container flexDirection={"column"} alignItems={"center"}>
 					<Grid container mb={1} justifyContent="center">
 						<NativeSelect
@@ -268,7 +297,7 @@ const EditRequestList = () => {
 							이름 수정
 						</Button>
 					</Grid>
-					<Grid container justifyContent={"center"} mb={1}>
+					<Grid container justifyContent={"center"} mb={2}>
 						<Button
 							variant="contained"
 							sx={{
@@ -515,7 +544,7 @@ const EditRequestList = () => {
 					</Button>
 				</DialogActions>
 			</Dialog>
-		</>
+		</DashboardLayout>
 	);
 };
 

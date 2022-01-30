@@ -115,7 +115,7 @@ const Login: React.VFC = () => {
 					>
 						어떤 서비스인지 궁금하신가요?
 						<Link
-							href="/about"
+							href="https://minr2kb.notion.site/df3634209d394602b37c41f7a91a1486"
 							sx={{
 								fontWeight: "bold",
 								color: "#505050",

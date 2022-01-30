@@ -1,6 +1,13 @@
 import React from "react";
 import Card from "../layouts/CenterCard";
-import { Grid, Box, Typography, Button } from "@mui/material";
+import {
+	Grid,
+	Box,
+	Typography,
+	Button,
+	useMediaQuery,
+	useTheme,
+} from "@mui/material";
 import { useRecoilState } from "recoil";
 import { userAuthRecoil } from "../states/recoil";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +22,9 @@ interface MenuProps {
 
 const Menu: React.VFC<MenuProps> = ({ setMode }) => {
 	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
+	const theme = useTheme();
 	const navigate = useNavigate();
+	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
 
 	return (
 		<Card>
@@ -38,7 +47,7 @@ const Menu: React.VFC<MenuProps> = ({ setMode }) => {
 					{userAuth?.isAnonymous && "게스트"}
 					{" 님"}
 				</Typography>
-				<Box width="100%">
+				<Box width="100%" mt={isMobile ? 2 : 0}>
 					{!userAuth?.isAnonymous && (
 						<Button
 							fullWidth
