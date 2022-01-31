@@ -176,7 +176,9 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 						const today = new Date();
 						today.setDate(today.getDate() - 1);
 						if (
-							(doc.data() as Live).createdTime.toDate() > today &&
+							(
+								(doc.data() as Live).createdTime as Timestamp
+							).toDate() > today &&
 							Object.keys(
 								(doc.data() as Live).participants
 							).includes(userAuth?.uid || "")

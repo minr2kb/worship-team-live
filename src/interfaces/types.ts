@@ -31,7 +31,7 @@ export interface Live {
 	code: string;
 	password: string | null;
 	host: Uid;
-	createdTime: Timestamp;
+	createdTime: Timestamp | Date;
 	participants: {
 		[key: Uid]: {
 			position: string;

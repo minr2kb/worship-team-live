@@ -110,7 +110,6 @@ const Login: React.VFC = () => {
 						variant="body2"
 						sx={{
 							mt: 4,
-							mb: 4,
 						}}
 					>
 						어떤 서비스인지 궁금하신가요?
@@ -125,6 +124,27 @@ const Login: React.VFC = () => {
 							}}
 						>
 							더 알아보기
+						</Link>
+					</Typography>
+					<Typography
+						variant="body2"
+						sx={{
+							mb: 4,
+							mt: 0.5,
+						}}
+					>
+						사용방식이 궁금하신가요?
+						<Link
+							href="/demo"
+							sx={{
+								fontWeight: "bold",
+								color: "#505050",
+								textDecorationColor: "#505050",
+								ml: "7px",
+								cursor: "pointer",
+							}}
+						>
+							데모 페이지
 						</Link>
 					</Typography>
 				</Grid>

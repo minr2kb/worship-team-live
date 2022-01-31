@@ -29,6 +29,7 @@ import {
 	increment,
 	serverTimestamp,
 	deleteField,
+	Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { Live, RequestSet } from "../interfaces/types";
@@ -109,7 +110,9 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 						const today = new Date();
 						today.setDate(today.getDate() - 1);
 						if (
-							(doc.data() as Live).createdTime.toDate() > today &&
+							(
+								(doc.data() as Live).createdTime as Timestamp
+							).toDate() > today &&
 							Object.keys(
 								(doc.data() as Live).participants
 							).includes(userAuth?.uid || "")

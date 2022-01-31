@@ -38,8 +38,6 @@ import {
 import { RequestPacket, Live, Request, RequestSet } from "../interfaces/types";
 import { use100vh } from "react-div-100vh";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { useRecoilState } from "recoil";
-import { userRecoil, userAuthRecoil, isLoadingRecoil } from "../states/recoil";
 import {
 	collection,
 	doc,
@@ -55,7 +53,6 @@ import {
 	deleteField,
 	query,
 	where,
-	Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { Bars } from "react-loader-spinner";
@@ -63,7 +60,7 @@ import MainLayout from "../layouts/MainLayout";
 
 const spacing = 1;
 
-const defaultRequestSet = {
+const defaultRequestSet: RequestSet = {
 	name: "기본 요청 리스트",
 	list: [
 		{
@@ -117,25 +114,163 @@ const defaultRequestSet = {
 	],
 };
 
-const LiveDashboard = () => {
-	const { id } = useParams();
+const demoRequests: RequestPacket[] = [
+	{
+		id: "0",
+		text: "🚗 템포 높여주세요",
+		from: "3",
+		to: "0",
+		status: "unchecked",
+	},
+	{
+		id: "1",
+		text: "🔈 소리가 안나와요",
+		from: "6",
+		to: "0",
+		status: "unchecked",
+	},
+	{
+		id: "2",
+		text: "🙋 한명만 와주세요",
+		from: "9",
+		to: "ALL",
+		status: "unchecked",
+	},
+	{
+		id: "3",
+		text: "✋ 여기 좀 봐주세요",
+		from: "5",
+		to: "0",
+		status: "unchecked",
+	},
+	{
+		id: "4",
+		text: "👍 볼륨 올려주세요",
+		from: "6",
+		to: "0",
+		status: "unchecked",
+	},
+	{
+		id: "5",
+		text: "🐢 템포 내려주세요",
+		from: "8",
+		to: "0",
+		status: "unchecked",
+	},
+	{
+		id: "6",
+		text: "✋ 여기 좀 봐주세요",
+		from: "7",
+		to: "0",
+		status: "unchecked",
+	},
+	{
+		id: "7",
+		text: "👎 볼륨 내려주세요",
+		from: "4",
+		to: "0",
+		status: "unchecked",
+	},
+	{
+		id: "8",
+		text: "🙋 한명만 와주세요",
+		from: "5",
+		to: "ALL",
+		status: "unchecked",
+	},
+	{
+		id: "9",
+		text: "💬 자막이 안나와요",
+		from: "3",
+		to: "0",
+		status: "unchecked",
+	},
+];
+
+const demoLiveData: Live = {
+	title: "데모교회 주일예배",
+	code: "268436",
+	password: null,
+	host: "0",
+	createdTime: new Date(),
+	participants: {
+		"0": {
+			position: "⭐️ 인도자",
+			isVerified: true,
+			requestSet: 0,
+		},
+		"1": {
+			position: "🎛 음향팀",
+			isVerified: true,
+			requestSet: 0,
+		},
+		"2": {
+			position: "🎹 메인건반",
+			isVerified: true,
+			requestSet: 0,
+		},
+		"3": {
+			position: "🎻 세컨건반",
+			isVerified: true,
+			requestSet: 0,
+		},
+		"4": {
+			position: "🖥 방송팀",
+			isVerified: true,
+			requestSet: 0,
+		},
+		"5": {
+			position: "🥁 드럼",
+			isVerified: true,
+			requestSet: 0,
+		},
+		"6": {
+			position: "🎸 베이스",
+			isVerified: true,
+			requestSet: 0,
+		},
+		"7": {
+			position: "🪕 어쿠스틱",
+			isVerified: true,
+			requestSet: 0,
+		},
+		"8": {
+			position: "⚡️ 일렉",
+			isVerified: true,
+			requestSet: 0,
+		},
+		"9": {
+			position: "🎙 싱어R",
+			isVerified: true,
+			requestSet: 0,
+		},
+		"10": {
+			position: "🎙 싱어L",
+			isVerified: true,
+			requestSet: 0,
+		},
+	},
+	requests: [],
+};
+
+const Demo = () => {
+	const id = "268436";
 	const theme = useTheme();
 	const navigate = useNavigate();
 	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
 	const isTablet = useMediaQuery(theme.breakpoints.down("tablet"));
-	const [user, setUser] = useRecoilState(userRecoil);
-	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
+	const userAuth = { uid: "0" };
 	const [isLoading, setIsLoading] = useState(true);
-	const [liveData, setLiveData] = useState<Live | null>(null);
+	const [liveData, setLiveData] = useState<Live>(demoLiveData);
 	const [receiver, setReceiver] = useState<string | null>(null);
 	const [page, setPage] = useState(0);
-	const [myRequests, setMyRequests] = useState<Request[]>([]);
-	const [notFound, setNotFound] = useState(false);
+	const myRequests = defaultRequestSet.list;
 	const [alertCount, setAlertCount] = useState(0);
 	const [detailedRequest, setDetailedRequest] = useState("");
 	const [open, setOpen] = useState(false);
 	const [liveTitle, setLiveTitle] = useState("");
 	const alertCountRef = useRef(0);
+	const RequestsRef = useRef<RequestPacket[]>([]);
 
 	const height = use100vh();
 
@@ -171,83 +306,56 @@ const LiveDashboard = () => {
 
 	const sendRequest = (text: string) => {
 		if (receiver) {
-			const toastId = toast.loading("요청 전송중...");
-			updateDoc(doc(collection(db, "Live"), id), {
-				requests: arrayUnion({
-					id: new Date().getTime().toString(),
-					text: text,
-					from: userAuth?.uid,
-					to: receiver,
-					status: "unchecked",
-				}),
-			})
-				.then(res => {
-					toast.dismiss(toastId);
-					toast.success("요청이 전송되었습니다");
-				})
-				.catch(err => toast.error("요청 전송에 실패했습니다"));
+			let newRequest: RequestPacket = {
+				id: new Date().toTimeString(),
+				text: text,
+				from: userAuth.uid,
+				to: receiver,
+				status: "unchecked",
+			};
+			RequestsRef.current = [...RequestsRef.current, newRequest];
+			setLiveData({ ...liveData, requests: RequestsRef.current });
+			toast.success("요청이 전송되었습니다");
 		} else {
 			toast.error("수신자를 선택해주세요");
 		}
 	};
 
-	const changeRequestStatus = (
+	const changeRequestState = (
 		reqId: string,
 		status: "unchecked" | "accepted" | "rejected"
 	) => {
-		const toastId = toast.loading("응답 전송중...");
-		updateDoc(doc(collection(db, "Live"), id), {
-			requests: liveData?.requests.map((request: RequestPacket) =>
-				request.id == reqId ? { ...request, status: status } : request
-			),
-		})
-			.then(res => {
-				toast.dismiss(toastId);
-				toast.success("응답이 전송되었습니다");
-			})
-			.catch(err => {
-				console.log(err);
-				toast.dismiss(toastId);
-				toast.error("응답 전송에 실패했습니다");
-			});
+		RequestsRef.current = RequestsRef.current.map(req =>
+			req.id == reqId ? { ...req, status: status } : req
+		);
+		setLiveData({
+			...liveData,
+			requests: RequestsRef.current,
+		});
+
+		if (
+			RequestsRef.current.filter(req => req.id == reqId)[0].from !==
+			userAuth.uid
+		) {
+			toast.success("응답이 전송되었습니다");
+			alertCountRef.current = alertCountRef.current - 1;
+			setAlertCount(alertCountRef.current);
+		}
+		// else {
+		// 	alertCountRef.current = alertCountRef.current - 1;
+		// 	setAlertCount(alertCountRef.current);
+		// }
 	};
 
 	const deleteLive = () => {
-		//TODO
 		if (window.confirm("정말로 라이브를 종료하시겠습니까?")) {
-			updateDoc(doc(collection(db, "User"), userAuth?.uid), {
-				currentLive: null,
-			})
-				.then(res => {
-					deleteDoc(doc(collection(db, "Live"), id)).then(res =>
-						navigate("/")
-					);
-				})
-				.catch(err => {
-					console.log(err);
-				});
+			navigate("/");
 		}
 	};
 
 	const exitLive = () => {
 		if (window.confirm("정말로 라이브를 나가시겠습니까?")) {
-			updateDoc(doc(collection(db, "User"), userAuth?.uid), {
-				currentLive: null,
-			})
-				.then(res => {
-					updateDoc(doc(collection(db, "Live"), id), {
-						[`participants.${userAuth?.uid}`]: deleteField(),
-					})
-						.then(res => {
-							navigate("/");
-						})
-						.catch(err => {
-							console.log(err);
-						});
-				})
-				.catch(err => {
-					console.log(err);
-				});
+			navigate("/");
 		}
 	};
 
@@ -257,55 +365,45 @@ const LiveDashboard = () => {
 	};
 
 	useEffect(() => {
-		const unsub = onSnapshot(
-			doc(collection(db, "Live"), id),
-			doc => {
-				if (doc.exists()) {
-					setLiveData(doc.data() as Live);
-					const newAlertCount = doc
-						.data()
-						?.requests.filter(
-							(request: RequestPacket) =>
-								request.status == "unchecked" &&
-								request.from !== userAuth?.uid &&
-								(request.to == userAuth?.uid ||
-									request.to == "ALL")
-						).length;
-					// console.log("alertCountRef.current", alertCountRef.current);
-					// console.log("newAlertCount", newAlertCount);
-
-					if (newAlertCount - alertCountRef.current > 0) {
-						toast("🚨 새로운 요청이 있습니다!");
-					}
-					updateAlertCount(newAlertCount);
-					setIsLoading(false);
-				} else {
-					console.log("Not Found");
-					setNotFound(true);
-					setIsLoading(false);
-				}
-			},
-			err => {
-				console.log(err);
-				setNotFound(true);
-				setIsLoading(false);
+		const INTERVAL = 8000;
+		let i = 0;
+		setTimeout(function run() {
+			console.log([...RequestsRef.current, demoRequests[i]]);
+			RequestsRef.current = [...RequestsRef.current, demoRequests[i]];
+			setLiveData({ ...liveData, requests: RequestsRef.current });
+			i += 1;
+			const newAlertCount = RequestsRef.current.filter(
+				(request: RequestPacket) =>
+					request.status == "unchecked" &&
+					request.from !== userAuth?.uid &&
+					(request.to == userAuth?.uid || request.to == "ALL")
+			).length;
+			if (newAlertCount - alertCountRef.current > 0) {
+				toast("🚨 새로운 요청이 있습니다!");
 			}
-		);
+			updateAlertCount(newAlertCount);
+			if (i < demoRequests.length) {
+				setTimeout(() => {
+					const nextID = RequestsRef.current.filter(
+						req =>
+							req.status == "unchecked" &&
+							req.from == userAuth.uid
+					)[0]?.id;
+					changeRequestState(
+						nextID,
+						i % 3 == 0 ? "rejected" : "accepted"
+					);
+				}, 2000);
+				setTimeout(run, INTERVAL);
+			}
+		}, INTERVAL);
 
-		return () => {
-			unsub();
-		};
+		setIsLoading(false);
 	}, []);
 
 	useEffect(() => {
-		if (liveData) {
-			setMyRequests(
-				user?.requestList[
-					liveData?.participants[userAuth?.uid || ""]?.requestSet || 0
-				].list || defaultRequestSet.list
-			);
-		}
-	}, [user, userAuth, liveData]);
+		RequestsRef.current = liveData.requests;
+	}, [liveData]);
 
 	return (
 		<>
@@ -313,13 +411,6 @@ const LiveDashboard = () => {
 			{isLoading ? (
 				<MainLayout>
 					<Bars color="#505050" height={40} width={50} />
-				</MainLayout>
-			) : notFound ? (
-				<MainLayout>
-					<p>종료되었거나 없는 라이브 입니다.</p>
-					<Link href="/" color={"secondary"} fontWeight="bold">
-						메인페이지로
-					</Link>
 				</MainLayout>
 			) : (
 				<DashboardLayout>
@@ -413,7 +504,7 @@ const LiveDashboard = () => {
 											</Typography>
 											<CopyToClipboard
 												text={id || ""}
-												onCopy={res =>
+												onCopy={result =>
 													toast.success(
 														"클립보드에 복사되었습니다"
 													)
@@ -477,9 +568,8 @@ const LiveDashboard = () => {
 													m={1}
 												>
 													{(
-														liveData?.createdTime as Timestamp
+														liveData?.createdTime as Date
 													)
-														.toDate()
 														.toTimeString()
 														.slice(0, 8)}
 												</Typography>
@@ -701,7 +791,7 @@ const LiveDashboard = () => {
 																							mr: 1,
 																						}}
 																						onClick={() =>
-																							changeRequestStatus(
+																							changeRequestState(
 																								request.id,
 																								"accepted"
 																							)
@@ -724,7 +814,7 @@ const LiveDashboard = () => {
 																							minWidth: 0,
 																						}}
 																						onClick={() =>
-																							changeRequestStatus(
+																							changeRequestState(
 																								request.id,
 																								"rejected"
 																							)
@@ -1023,21 +1113,9 @@ const LiveDashboard = () => {
 							color: "#007AFF",
 						}}
 						onClick={() => {
-							let toastId = toast.loading("변경중...");
-							updateDoc(doc(collection(db, "Live"), id), {
-								title: liveTitle,
-							})
-								.then(res => {
-									toast.dismiss(toastId);
-									toast.success("변경되었습니다");
-									setOpen(false);
-								})
-								.catch(err => {
-									console.log(err);
-									toast.dismiss(toastId);
-									toast.error("변경에 실패했습니다");
-									setOpen(false);
-								});
+							setLiveData({ ...liveData, title: liveTitle });
+							toast.success("변경되었습니다");
+							setOpen(false);
 						}}
 					>
 						{"변경"}
@@ -1048,4 +1126,4 @@ const LiveDashboard = () => {
 	);
 };
 
-export default LiveDashboard;
+export default Demo;

@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Main from "./pages/Main";
 import LiveDashboard from "./pages/LiveDashboard";
 // import About from "./pages/About";
-// import Test from "./pages/Test";
+import Demo from "./pages/Demo";
 import { useRecoilState } from "recoil";
 import { userRecoil, userAuthRecoil, isLoadingRecoil } from "./states/recoil";
 import { onAuthStateChanged } from "firebase/auth";
@@ -114,8 +114,8 @@ function App() {
 	return (
 		<Routes>
 			<Route path="/" element={<Main />} />
-			{/* <Route path="/test" element={<Test />} />
-			<Route path="/about" element={<About />} /> */}
+			<Route path="/demo" element={<Demo />} />
+			{/* <Route path="/about" element={<About />} /> */}
 			<Route
 				path="/edit"
 				element={user ? <EditRequestList /> : <Navigate to={"/"} />}
