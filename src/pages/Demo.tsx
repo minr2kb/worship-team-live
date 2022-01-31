@@ -2,6 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Card from "../components/Card";
+import {
+	defaultRequestSet,
+	demoRequests,
+	demoRequestsAndResponses,
+	demoLiveData,
+} from "../consts";
 import { useParams, useNavigate } from "react-router-dom";
 import {
 	Grid,
@@ -60,199 +66,6 @@ import MainLayout from "../layouts/MainLayout";
 
 const spacing = 1;
 
-const defaultRequestSet: RequestSet = {
-	name: "기본 요청 리스트",
-	list: [
-		{
-			id: "1",
-			text: "🔈 소리가 안나와요",
-		},
-		{
-			id: "2",
-			text: "🔇 뮤트 해주세요",
-		},
-		{
-			id: "3",
-			text: "👍 볼륨 올려주세요",
-		},
-		{
-			id: "4",
-			text: "👎 볼륨 내려주세요",
-		},
-		{
-			id: "5",
-			text: "🚗 템포 높여주세요",
-		},
-		{
-			id: "6",
-			text: "🐢 템포 내려주세요",
-		},
-		{
-			id: "7",
-			text: "📈 모니터 올려주세요",
-		},
-		{
-			id: "8",
-			text: "📉 모니터 줄여주세요",
-		},
-		{
-			id: "9",
-			text: "🛠 톤 다시 잡아주세요",
-		},
-		{
-			id: "10",
-			text: "💬 자막이 안나와요",
-		},
-		{
-			id: "11",
-			text: "✋ 여기 좀 봐주세요",
-		},
-		{
-			id: "12",
-			text: "🙋 한명만 와주세요",
-		},
-	],
-};
-
-const demoRequests: RequestPacket[] = [
-	{
-		id: "0",
-		text: "🚗 템포 높여주세요",
-		from: "3",
-		to: "0",
-		status: "unchecked",
-	},
-	{
-		id: "1",
-		text: "🔈 소리가 안나와요",
-		from: "6",
-		to: "0",
-		status: "unchecked",
-	},
-	{
-		id: "2",
-		text: "🙋 한명만 와주세요",
-		from: "9",
-		to: "ALL",
-		status: "unchecked",
-	},
-	{
-		id: "3",
-		text: "✋ 여기 좀 봐주세요",
-		from: "5",
-		to: "0",
-		status: "unchecked",
-	},
-	{
-		id: "4",
-		text: "👍 볼륨 올려주세요",
-		from: "6",
-		to: "0",
-		status: "unchecked",
-	},
-	{
-		id: "5",
-		text: "🐢 템포 내려주세요",
-		from: "8",
-		to: "0",
-		status: "unchecked",
-	},
-	{
-		id: "6",
-		text: "✋ 여기 좀 봐주세요",
-		from: "7",
-		to: "0",
-		status: "unchecked",
-	},
-	{
-		id: "7",
-		text: "👎 볼륨 내려주세요",
-		from: "4",
-		to: "0",
-		status: "unchecked",
-	},
-	{
-		id: "8",
-		text: "🙋 한명만 와주세요",
-		from: "5",
-		to: "ALL",
-		status: "unchecked",
-	},
-	{
-		id: "9",
-		text: "💬 자막이 안나와요",
-		from: "3",
-		to: "0",
-		status: "unchecked",
-	},
-];
-
-const demoLiveData: Live = {
-	title: "데모교회 주일예배",
-	code: "268436",
-	password: null,
-	host: "0",
-	createdTime: new Date(),
-	participants: {
-		"0": {
-			position: "⭐️ 인도자",
-			isVerified: true,
-			requestSet: 0,
-		},
-		"1": {
-			position: "🎛 음향팀",
-			isVerified: true,
-			requestSet: 0,
-		},
-		"2": {
-			position: "🎹 메인건반",
-			isVerified: true,
-			requestSet: 0,
-		},
-		"3": {
-			position: "🎻 세컨건반",
-			isVerified: true,
-			requestSet: 0,
-		},
-		"4": {
-			position: "🖥 방송팀",
-			isVerified: true,
-			requestSet: 0,
-		},
-		"5": {
-			position: "🥁 드럼",
-			isVerified: true,
-			requestSet: 0,
-		},
-		"6": {
-			position: "🎸 베이스",
-			isVerified: true,
-			requestSet: 0,
-		},
-		"7": {
-			position: "🪕 어쿠스틱",
-			isVerified: true,
-			requestSet: 0,
-		},
-		"8": {
-			position: "⚡️ 일렉",
-			isVerified: true,
-			requestSet: 0,
-		},
-		"9": {
-			position: "🎙 싱어R",
-			isVerified: true,
-			requestSet: 0,
-		},
-		"10": {
-			position: "🎙 싱어L",
-			isVerified: true,
-			requestSet: 0,
-		},
-	},
-	requests: [],
-};
-
 const Demo = () => {
 	const id = "268436";
 	const theme = useTheme();
@@ -307,7 +120,7 @@ const Demo = () => {
 	const sendRequest = (text: string) => {
 		if (receiver) {
 			let newRequest: RequestPacket = {
-				id: new Date().toTimeString(),
+				id: new Date().toTimeString().slice(0, 8),
 				text: text,
 				from: userAuth.uid,
 				to: receiver,
@@ -333,18 +146,13 @@ const Demo = () => {
 			requests: RequestsRef.current,
 		});
 
-		if (
-			RequestsRef.current.filter(req => req.id == reqId)[0].from !==
-			userAuth.uid
-		) {
+		const from = RequestsRef.current.filter(req => req.id == reqId)[0]
+			?.from;
+		if (from !== userAuth.uid && from !== undefined) {
 			toast.success("응답이 전송되었습니다");
 			alertCountRef.current = alertCountRef.current - 1;
 			setAlertCount(alertCountRef.current);
 		}
-		// else {
-		// 	alertCountRef.current = alertCountRef.current - 1;
-		// 	setAlertCount(alertCountRef.current);
-		// }
 	};
 
 	const deleteLive = () => {
@@ -364,10 +172,22 @@ const Demo = () => {
 		setAlertCount(newAlertCount);
 	};
 
-	useEffect(() => {
-		const INTERVAL = 8000;
+	const autoCheck = (interval: number) => {
+		setTimeout(function check() {
+			const nextID = RequestsRef.current.filter(
+				req => req.status == "unchecked" && req.from == userAuth.uid
+			)[0]?.id;
+			changeRequestState(
+				nextID,
+				Math.random() < 0.2 ? "rejected" : "accepted"
+			);
+			setTimeout(check, interval);
+		}, interval);
+	};
+
+	const autoRequest = (interval: number) => {
 		let i = 0;
-		setTimeout(function run() {
+		function run() {
 			console.log([...RequestsRef.current, demoRequests[i]]);
 			RequestsRef.current = [...RequestsRef.current, demoRequests[i]];
 			setLiveData({ ...liveData, requests: RequestsRef.current });
@@ -383,21 +203,28 @@ const Demo = () => {
 			}
 			updateAlertCount(newAlertCount);
 			if (i < demoRequests.length) {
-				setTimeout(() => {
-					const nextID = RequestsRef.current.filter(
-						req =>
-							req.status == "unchecked" &&
-							req.from == userAuth.uid
-					)[0]?.id;
-					changeRequestState(
-						nextID,
-						i % 3 == 0 ? "rejected" : "accepted"
-					);
-				}, 2000);
-				setTimeout(run, INTERVAL);
+				setTimeout(run, interval);
 			}
-		}, INTERVAL);
+		}
+		run();
+	};
 
+	const demoSetting = () => {
+		setLiveData({ ...demoLiveData, requests: demoRequestsAndResponses });
+		const newAlertCount = demoRequestsAndResponses.filter(
+			(request: RequestPacket) =>
+				request.status == "unchecked" &&
+				request.from !== userAuth?.uid &&
+				(request.to == userAuth?.uid || request.to == "ALL")
+		).length;
+		alertCountRef.current = newAlertCount;
+		setAlertCount(newAlertCount);
+	};
+
+	useEffect(() => {
+		autoRequest(7000);
+		autoCheck(4000);
+		// demoSetting();
 		setIsLoading(false);
 	}, []);
 
@@ -880,7 +707,7 @@ const Demo = () => {
 									</Grid>
 									<Grid
 										container
-										maxHeight={"20vh"}
+										maxHeight={"15vh"}
 										sx={{ overflowY: "auto", mb: 1 }}
 									>
 										<Button

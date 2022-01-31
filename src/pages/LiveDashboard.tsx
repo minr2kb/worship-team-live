@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Card from "../components/Card";
+import { defaultRequestSet } from "../consts";
 import { useParams, useNavigate } from "react-router-dom";
 import {
 	Grid,
@@ -62,60 +63,6 @@ import { Bars } from "react-loader-spinner";
 import MainLayout from "../layouts/MainLayout";
 
 const spacing = 1;
-
-const defaultRequestSet = {
-	name: "기본 요청 리스트",
-	list: [
-		{
-			id: "1",
-			text: "🔈 소리가 안나와요",
-		},
-		{
-			id: "2",
-			text: "🔇 뮤트 해주세요",
-		},
-		{
-			id: "3",
-			text: "👍 볼륨 올려주세요",
-		},
-		{
-			id: "4",
-			text: "👎 볼륨 내려주세요",
-		},
-		{
-			id: "5",
-			text: "🚗 템포 높여주세요",
-		},
-		{
-			id: "6",
-			text: "🐢 템포 내려주세요",
-		},
-		{
-			id: "7",
-			text: "📈 모니터 올려주세요",
-		},
-		{
-			id: "8",
-			text: "📉 모니터 줄여주세요",
-		},
-		{
-			id: "9",
-			text: "🛠 톤 다시 잡아주세요",
-		},
-		{
-			id: "10",
-			text: "💬 자막이 안나와요",
-		},
-		{
-			id: "11",
-			text: "✋ 여기 좀 봐주세요",
-		},
-		{
-			id: "12",
-			text: "🙋 한명만 와주세요",
-		},
-	],
-};
 
 const LiveDashboard = () => {
 	const { id } = useParams();
@@ -790,7 +737,7 @@ const LiveDashboard = () => {
 									</Grid>
 									<Grid
 										container
-										maxHeight={"20vh"}
+										maxHeight={"15vh"}
 										sx={{ overflowY: "auto", mb: 1 }}
 									>
 										<Button

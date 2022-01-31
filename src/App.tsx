@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Main from "./pages/Main";
 import LiveDashboard from "./pages/LiveDashboard";
-// import About from "./pages/About";
+import { defaultRequestSet } from "./consts";
 import Demo from "./pages/Demo";
 import { useRecoilState } from "recoil";
 import { userRecoil, userAuthRecoil, isLoadingRecoil } from "./states/recoil";
@@ -12,60 +12,6 @@ import { auth, db } from "./firebase";
 import EditRequestList from "./pages/EditRequestList";
 import { use100vh } from "react-div-100vh";
 import { Navigate } from "react-router-dom";
-
-const defaultRequestSet = {
-	name: "기본 요청 리스트",
-	list: [
-		{
-			id: "1",
-			text: "🔈 소리가 안나와요",
-		},
-		{
-			id: "2",
-			text: "🔇 뮤트 해주세요",
-		},
-		{
-			id: "3",
-			text: "👍 볼륨 올려주세요",
-		},
-		{
-			id: "4",
-			text: "👎 볼륨 내려주세요",
-		},
-		{
-			id: "5",
-			text: "🚗 템포 높여주세요",
-		},
-		{
-			id: "6",
-			text: "🐢 템포 내려주세요",
-		},
-		{
-			id: "7",
-			text: "📈 모니터 올려주세요",
-		},
-		{
-			id: "8",
-			text: "📉 모니터 줄여주세요",
-		},
-		{
-			id: "9",
-			text: "🛠 톤 다시 잡아주세요",
-		},
-		{
-			id: "10",
-			text: "💬 자막이 안나와요",
-		},
-		{
-			id: "11",
-			text: "✋ 여기 좀 봐주세요",
-		},
-		{
-			id: "12",
-			text: "🙋 한명만 와주세요",
-		},
-	],
-};
 
 function App() {
 	const [user, setUser] = useRecoilState(userRecoil);
