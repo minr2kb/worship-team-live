@@ -77,7 +77,7 @@ const LiveDashboard = () => {
 	const [receiver, setReceiver] = useState<string | null>(null);
 	const [page, setPage] = useState(0);
 	const [myRequests, setMyRequests] = useState<Request[]>([]);
-	const [notFound, setNotFound] = useState(false);
+	const [pageLoadError, setPageLoadError] = useState<string | null>(null);
 	const [alertCount, setAlertCount] = useState(0);
 	const [detailedRequest, setDetailedRequest] = useState("");
 	const [open, setOpen] = useState(false);
@@ -207,34 +207,40 @@ const LiveDashboard = () => {
 		const unsub = onSnapshot(
 			doc(collection(db, "Live"), id),
 			doc => {
-				if (doc.exists()) {
-					setLiveData(doc.data() as Live);
-					const newAlertCount = doc
-						.data()
-						?.requests.filter(
-							(request: RequestPacket) =>
-								request.status == "unchecked" &&
-								request.from !== userAuth?.uid &&
-								(request.to == userAuth?.uid ||
-									request.to == "ALL")
-						).length;
-					// console.log("alertCountRef.current", alertCountRef.current);
-					// console.log("newAlertCount", newAlertCount);
+				if (window.navigator.onLine) {
+					if (doc.exists()) {
+						setLiveData(doc.data() as Live);
+						const newAlertCount = doc
+							.data()
+							?.requests.filter(
+								(request: RequestPacket) =>
+									request.status == "unchecked" &&
+									request.from !== userAuth?.uid &&
+									(request.to == userAuth?.uid ||
+										request.to == "ALL")
+							).length;
 
-					if (newAlertCount - alertCountRef.current > 0) {
-						toast("🚨 새로운 요청이 있습니다!");
+						if (newAlertCount - alertCountRef.current > 0) {
+							toast("🚨 새로운 요청이 있습니다!");
+						}
+						updateAlertCount(newAlertCount);
+					} else {
+						console.log(doc.metadata);
+						console.log("Live Not Found");
+						setPageLoadError(
+							"종료되었거나 존재하지 않는 라이브입니다"
+						);
+						setIsLoading(false);
 					}
-					updateAlertCount(newAlertCount);
-					setIsLoading(false);
 				} else {
-					console.log("Not Found");
-					setNotFound(true);
+					setPageLoadError("인터넷에 연결되어 있지 않습니다.");
+					// toast.error("인터넷 연결이 필요합니다");
 					setIsLoading(false);
 				}
 			},
 			err => {
 				console.log(err);
-				setNotFound(true);
+				setPageLoadError("라이브 로드 중 문제가 발생했습니다");
 				setIsLoading(false);
 			}
 		);
@@ -245,12 +251,23 @@ const LiveDashboard = () => {
 	}, []);
 
 	useEffect(() => {
-		if (liveData) {
-			setMyRequests(
-				user?.requestList[
-					liveData?.participants[userAuth?.uid || ""]?.requestSet || 0
-				].list || defaultRequestSet.list
-			);
+		if (user && liveData && userAuth) {
+			if (
+				liveData.participants[userAuth?.uid || ""] &&
+				liveData.participants[userAuth?.uid || ""]?.isVerified
+			) {
+				console.log("!!!!!!!!!!!!!");
+				setMyRequests(
+					user?.requestList[
+						liveData?.participants[userAuth?.uid || ""]
+							?.requestSet || 0
+					].list || defaultRequestSet.list
+				);
+			} else {
+				console.log("?????????????");
+				setPageLoadError("라이브 참여 권한이 없습니다");
+			}
+			setIsLoading(false);
 		}
 	}, [user, userAuth, liveData]);
 
@@ -261,9 +278,9 @@ const LiveDashboard = () => {
 				<MainLayout>
 					<Bars color="#505050" height={40} width={50} />
 				</MainLayout>
-			) : notFound ? (
+			) : pageLoadError ? (
 				<MainLayout>
-					<p>종료되었거나 없는 라이브 입니다.</p>
+					<p>{pageLoadError || ""}</p>
 					<Link href="/" color={"secondary"} fontWeight="bold">
 						메인페이지로
 					</Link>

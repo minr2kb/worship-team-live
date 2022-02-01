@@ -12,26 +12,34 @@ import { auth, provider } from "../firebase";
 
 const Login: React.VFC = () => {
 	const signInWithGoogle = () => {
-		toast.loading("구글 로그인 중...");
-		setPersistence(auth, browserLocalPersistence)
-			.then(() => {
-				return signInWithRedirect(auth, provider);
-			})
-			.catch(error => {
-				console.log(error);
-			});
+		if (window.navigator.onLine) {
+			toast.loading("구글 로그인 중...");
+			setPersistence(auth, browserLocalPersistence)
+				.then(() => {
+					return signInWithRedirect(auth, provider);
+				})
+				.catch(error => {
+					console.log(error);
+				});
+		} else {
+			toast.error("인터넷 연결이 필요합니다");
+		}
 	};
 
 	const signInAsGuest = () => {
-		const toastId = toast.loading("게스트로 로그인 중...");
-		signInAnonymously(auth)
-			.then(() => {
-				toast.dismiss(toastId);
-				console.log("success");
-			})
-			.catch(error => {
-				console.log(error);
-			});
+		if (window.navigator.onLine) {
+			const toastId = toast.loading("게스트로 로그인 중...");
+			signInAnonymously(auth)
+				.then(() => {
+					toast.dismiss(toastId);
+					console.log("success");
+				})
+				.catch(error => {
+					console.log(error);
+				});
+		} else {
+			toast.error("인터넷 연결이 필요합니다");
+		}
 	};
 
 	return (

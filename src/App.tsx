@@ -46,10 +46,18 @@ function App() {
 									setUser(newUserData);
 									setIsLoading(false);
 								})
-								.catch(err => setUser(null));
+								.catch(err => {
+									console.log(err);
+									setUser(null);
+									setIsLoading(false);
+								});
 						}
 					})
-					.catch(err => setUser(null));
+					.catch(err => {
+						console.log(err);
+						setUser(null);
+						setIsLoading(false);
+					});
 			} else {
 				setUserAuth(null);
 				setIsLoading(false);
