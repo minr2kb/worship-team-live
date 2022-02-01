@@ -5,7 +5,7 @@ import Login from "./Login";
 import Menu from "./Menu";
 import HostingPage from "./HostingPage";
 import ParticipationPage from "./ParticipationPage";
-import { Grid, Box, Typography, Button, Link, Slide } from "@mui/material";
+import { Box, Slide } from "@mui/material";
 import { useRecoilState } from "recoil";
 import { userRecoil, isLoadingRecoil } from "../states/recoil";
 import { Bars } from "react-loader-spinner";
@@ -42,12 +42,12 @@ const Main: React.VFC = () => {
 					<>
 						{user ? (
 							<>
-								{(mode == "host" || transition == "host") && (
+								{(mode === "host" || transition === "host") && (
 									<Slide
 										direction="left"
 										in={
-											mode == "host" &&
-											transition == "host"
+											mode === "host" &&
+											transition === "host"
 										}
 										mountOnEnter
 										unmountOnExit
@@ -59,13 +59,13 @@ const Main: React.VFC = () => {
 										</Box>
 									</Slide>
 								)}
-								{(mode == "participant" ||
-									transition == "participant") && (
+								{(mode === "participant" ||
+									transition === "participant") && (
 									<Slide
 										direction="left"
 										in={
-											mode == "participant" &&
-											transition == "participant"
+											mode === "participant" &&
+											transition === "participant"
 										}
 										mountOnEnter
 										unmountOnExit
@@ -81,7 +81,7 @@ const Main: React.VFC = () => {
 								)}
 								<Slide
 									direction="up"
-									in={mode == null && transition == null}
+									in={mode === null && transition === null}
 									mountOnEnter
 									unmountOnExit
 									timeout={SLIDE_DURATION}

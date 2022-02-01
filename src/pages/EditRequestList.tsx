@@ -1,16 +1,9 @@
-import React, {
-	useState,
-	forwardRef,
-	ReactChildren,
-	Ref,
-	useEffect,
-} from "react";
+import React, { useState, useEffect } from "react";
 import {
 	DndContext,
 	closestCenter,
 	MouseSensor,
 	TouchSensor,
-	DragOverlay,
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
@@ -31,11 +24,8 @@ import {
 	Typography,
 	NativeSelect,
 	Dialog,
-	DialogTitle,
 	DialogContent,
-	DialogContentText,
 	DialogActions,
-	Tooltip,
 } from "@mui/material";
 
 import { useSortable } from "@dnd-kit/sortable";
@@ -45,12 +35,11 @@ import { use100vh } from "react-div-100vh";
 import { Request, RequestSet } from "../interfaces/types";
 import { DragIndicator, Delete, Add, ArrowBack } from "@mui/icons-material";
 
-import { collection, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 import { useRecoilState } from "recoil";
 import { userRecoil, userAuthRecoil } from "../states/recoil";
-import LiveDashboard from "./LiveDashboard";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useNavigate } from "react-router-dom";
 
@@ -83,7 +72,7 @@ const SortableItem = (props: any) => {
 	) => {
 		setItems(
 			items.map((item: Request) =>
-				item.id == id
+				item.id === id
 					? {
 							id: id,
 							text: e.currentTarget.value,
@@ -213,7 +202,7 @@ const EditRequestList = () => {
 	useEffect(() => {
 		setRequestSets(
 			requestSets.map((requestSet, idx) =>
-				idx == currentRequestSet
+				idx === currentRequestSet
 					? { ...requestSet, list: items }
 					: requestSet
 			)
@@ -508,13 +497,13 @@ const EditRequestList = () => {
 							) {
 								setError("이미 존재하는 이름입니다.");
 							} else {
-								if (editNameMode == "new") {
+								if (editNameMode === "new") {
 									setCurrentRequestSet(requestSets.length);
 									setRequestSets([
 										...requestSets,
 										{ name: requestSetName, list: [] },
 									]);
-								} else if (editNameMode == "duplicate") {
+								} else if (editNameMode === "duplicate") {
 									setCurrentRequestSet(requestSets.length);
 									setRequestSets([
 										...requestSets,
@@ -524,10 +513,10 @@ const EditRequestList = () => {
 												.list,
 										},
 									]);
-								} else if (editNameMode == "edit") {
+								} else if (editNameMode === "edit") {
 									setRequestSets(
 										requestSets.map((requestSet, idx) =>
-											idx == currentRequestSet
+											idx === currentRequestSet
 												? {
 														...requestSet,
 														name: requestSetName,
@@ -540,7 +529,7 @@ const EditRequestList = () => {
 							}
 						}}
 					>
-						{editNameMode == "edit" ? "변경" : "생성"}
+						{editNameMode === "edit" ? "변경" : "생성"}
 					</Button>
 				</DialogActions>
 			</Dialog>

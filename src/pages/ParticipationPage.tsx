@@ -3,10 +3,8 @@ import { useNavigate } from "react-router-dom";
 import CenterCard from "../layouts/CenterCard";
 import {
 	Grid,
-	Box,
 	Typography,
 	Button,
-	Link,
 	TextField,
 	IconButton,
 	NativeSelect,
@@ -23,11 +21,7 @@ import {
 	collection,
 	doc,
 	getDoc,
-	setDoc,
-	addDoc,
 	updateDoc,
-	increment,
-	serverTimestamp,
 	deleteField,
 	Timestamp,
 } from "firebase/firestore";
@@ -144,7 +138,6 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 			getDoc(doc(db, "Live", user?.currentLive))
 				.then(doc => {
 					if (doc.exists()) {
-						console.log("We Have!");
 						const today = new Date();
 						today.setDate(today.getDate() - 1);
 						if (
@@ -155,11 +148,10 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 								(doc.data() as Live).participants
 							).includes(userAuth?.uid || "")
 						) {
+							console.log("Found current live!");
 							setCurrentLive(doc.data() as Live);
 							setOpen(true);
 						}
-					} else {
-						console.log("No Doc!");
 					}
 				})
 				.catch(err => console.log(err));
@@ -210,8 +202,8 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 						color="info"
 						value={liveCode}
 						onChange={e => setLiveCode(e.target.value)}
-						error={error == "code"}
-						helperText={error == "code" && "코드를 입력해주세요"}
+						error={error === "code"}
+						helperText={error === "code" && "코드를 입력해주세요"}
 					/>
 					<TextField
 						fullWidth
@@ -221,9 +213,9 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 						sx={{ mt: 3 }}
 						value={position}
 						onChange={e => setPosition(e.target.value)}
-						error={error == "position"}
+						error={error === "position"}
 						helperText={
-							error == "position" && "포지션을 입력해주세요"
+							error === "position" && "포지션을 입력해주세요"
 						}
 					/>
 					{!userAuth?.isAnonymous && (
@@ -258,7 +250,7 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 				</Grid>
 			</CenterCard>
 			<Dialog fullWidth maxWidth={"mobile"} open={open}>
-				{dialogMode == "continue" ? (
+				{dialogMode === "continue" ? (
 					<>
 						<DialogContent>
 							<DialogContentText>
@@ -333,7 +325,7 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 									color: "#007AFF",
 								}}
 								onClick={() => {
-									if (password == livePassword) {
+									if (password === livePassword) {
 										participateInLive();
 									} else {
 										toast.error(

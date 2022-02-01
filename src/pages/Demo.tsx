@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Card from "../components/Card";
@@ -8,18 +8,15 @@ import {
 	demoRequestsAndResponses,
 	demoLiveData,
 } from "../consts";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
 	Grid,
 	Box,
 	Typography,
 	Button,
-	Link,
 	useMediaQuery,
 	useTheme,
 	Divider,
-	InputBase,
-	Input,
 	TextField,
 	Paper,
 	BottomNavigation,
@@ -35,32 +32,12 @@ import {
 	Close,
 	ArrowRightAlt,
 	Send,
-	Restore,
-	Favorite,
-	Archive,
 	Assignment,
 	Announcement,
 } from "@mui/icons-material";
-import { RequestPacket, Live, Request, RequestSet } from "../interfaces/types";
+import { RequestPacket, Live, Request } from "../interfaces/types";
 import { use100vh } from "react-div-100vh";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import {
-	collection,
-	doc,
-	getDoc,
-	setDoc,
-	addDoc,
-	updateDoc,
-	increment,
-	serverTimestamp,
-	onSnapshot,
-	arrayUnion,
-	deleteDoc,
-	deleteField,
-	query,
-	where,
-} from "firebase/firestore";
-import { db } from "../firebase";
 import { Bars } from "react-loader-spinner";
 import MainLayout from "../layouts/MainLayout";
 
@@ -96,7 +73,7 @@ const Demo = () => {
 			return fromMe
 				? theme.palette.success.light
 				: theme.palette.text.disabled;
-		} else if (status == "rejected") {
+		} else if (status === "rejected") {
 			return fromMe
 				? theme.palette.error.light
 				: theme.palette.text.disabled;
@@ -111,7 +88,7 @@ const Demo = () => {
 		if (status === "unchecked") return fromMe ? "확인중" : "";
 		else if (status === "accepted") {
 			return fromMe ? "수락됨" : "수락함";
-		} else if (status == "rejected") {
+		} else if (status === "rejected") {
 			return fromMe ? "거절됨" : "거절함";
 		}
 		return "";
@@ -139,14 +116,14 @@ const Demo = () => {
 		status: "unchecked" | "accepted" | "rejected"
 	) => {
 		RequestsRef.current = RequestsRef.current.map(req =>
-			req.id == reqId ? { ...req, status: status } : req
+			req.id === reqId ? { ...req, status: status } : req
 		);
 		setLiveData({
 			...liveData,
 			requests: RequestsRef.current,
 		});
 
-		const from = RequestsRef.current.filter(req => req.id == reqId)[0]
+		const from = RequestsRef.current.filter(req => req.id === reqId)[0]
 			?.from;
 		if (from !== userAuth.uid && from !== undefined) {
 			toast.success("응답이 전송되었습니다");
@@ -175,7 +152,7 @@ const Demo = () => {
 	const autoCheck = (interval: number) => {
 		setTimeout(function check() {
 			const nextID = RequestsRef.current.filter(
-				req => req.status == "unchecked" && req.from == userAuth.uid
+				req => req.status === "unchecked" && req.from === userAuth.uid
 			)[0]?.id;
 			changeRequestState(
 				nextID,
@@ -188,17 +165,17 @@ const Demo = () => {
 	const autoRequest = (interval: number) => {
 		let i = 0;
 		function run() {
-			console.log([...RequestsRef.current, demoRequests[i]]);
 			RequestsRef.current = [...RequestsRef.current, demoRequests[i]];
 			setLiveData({ ...liveData, requests: RequestsRef.current });
 			i += 1;
 			const newAlertCount = RequestsRef.current.filter(
 				(request: RequestPacket) =>
-					request.status == "unchecked" &&
+					request.status === "unchecked" &&
 					request.from !== userAuth?.uid &&
-					(request.to == userAuth?.uid || request.to == "ALL")
+					(request.to === userAuth?.uid || request.to === "ALL")
 			).length;
 			if (newAlertCount - alertCountRef.current > 0) {
+				// window.navigator.vibrate(1);
 				toast("🚨 새로운 요청이 있습니다!");
 			}
 			updateAlertCount(newAlertCount);
@@ -213,9 +190,9 @@ const Demo = () => {
 		setLiveData({ ...demoLiveData, requests: demoRequestsAndResponses });
 		const newAlertCount = demoRequestsAndResponses.filter(
 			(request: RequestPacket) =>
-				request.status == "unchecked" &&
+				request.status === "unchecked" &&
 				request.from !== userAuth?.uid &&
-				(request.to == userAuth?.uid || request.to == "ALL")
+				(request.to === userAuth?.uid || request.to === "ALL")
 		).length;
 		alertCountRef.current = newAlertCount;
 		setAlertCount(newAlertCount);
@@ -241,7 +218,7 @@ const Demo = () => {
 				</MainLayout>
 			) : (
 				<DashboardLayout>
-					{(!isTablet || page == 0) && (
+					{(!isTablet || page === 0) && (
 						<Grid
 							container
 							item
@@ -278,12 +255,12 @@ const Demo = () => {
 												pr: 2,
 											}}
 											onClick={
-												liveData?.host == userAuth?.uid
+												liveData?.host === userAuth?.uid
 													? deleteLive
 													: exitLive
 											}
 										>
-											{liveData?.host == userAuth?.uid
+											{liveData?.host === userAuth?.uid
 												? "종료하기"
 												: "나가기"}
 										</Button>
@@ -296,7 +273,7 @@ const Demo = () => {
 											<Typography variant="h4">
 												라이브 정보
 											</Typography>
-											{liveData?.host ==
+											{liveData?.host ===
 												userAuth?.uid && (
 												<div
 													style={{
@@ -457,11 +434,11 @@ const Demo = () => {
 														request: RequestPacket,
 														idx: number
 													) =>
-														(request.from ==
+														(request.from ===
 															userAuth?.uid ||
-															request.to ==
+															request.to ===
 																userAuth?.uid ||
-															request.to ==
+															request.to ===
 																"ALL") && (
 															<Box
 																mr={3}
@@ -473,7 +450,7 @@ const Demo = () => {
 																		backgroundColor:
 																			requestCardColor(
 																				request.status,
-																				request.from ==
+																				request.from ===
 																					userAuth?.uid
 																			),
 																	}}
@@ -519,12 +496,12 @@ const Demo = () => {
 																						mr: 1,
 																					}}
 																				>
-																					{request.from ==
+																					{request.from ===
 																					userAuth?.uid ? (
 																						<b>
 																							나
 																						</b>
-																					) : request.from ==
+																					) : request.from ===
 																					  "ALL" ? (
 																						<b>
 																							ALL
@@ -554,12 +531,12 @@ const Demo = () => {
 																					}}
 																				>
 																					{" "}
-																					{request.to ==
+																					{request.to ===
 																					userAuth?.uid ? (
 																						<b>
 																							나
 																						</b>
-																					) : request.to ==
+																					) : request.to ===
 																					  "ALL" ? (
 																						<b>
 																							ALL
@@ -588,7 +565,7 @@ const Demo = () => {
 																		>
 																			{requestStatus(
 																				request.status,
-																				request.from ==
+																				request.from ===
 																					userAuth?.uid
 																			) ? (
 																				<Typography
@@ -600,7 +577,7 @@ const Demo = () => {
 																				>
 																					{requestStatus(
 																						request.status,
-																						request.from ==
+																						request.from ===
 																							userAuth?.uid
 																					)}
 																				</Typography>
@@ -669,7 +646,7 @@ const Demo = () => {
 					)}
 
 					{/* 오른쪽 #fff*/}
-					{(!isTablet || page == 1) && (
+					{(!isTablet || page === 1) && (
 						<Grid
 							container
 							item
@@ -714,7 +691,7 @@ const Demo = () => {
 											key={"ALL"}
 											onClick={() => setReceiver("ALL")}
 											color={
-												receiver == "ALL"
+												receiver === "ALL"
 													? "info"
 													: "primary"
 											}
@@ -722,7 +699,7 @@ const Demo = () => {
 											sx={{
 												fontWeight: "normal",
 												color:
-													receiver == "ALL"
+													receiver === "ALL"
 														? "white"
 														: "#505050",
 												p: "8px",
@@ -748,7 +725,7 @@ const Demo = () => {
 															)
 														}
 														color={
-															participant ==
+															participant ===
 															receiver
 																? "info"
 																: "primary"
@@ -758,7 +735,7 @@ const Demo = () => {
 															fontWeight:
 																"normal",
 															color:
-																participant ==
+																participant ===
 																receiver
 																	? "white"
 																	: "#505050",

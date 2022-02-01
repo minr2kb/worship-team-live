@@ -1,13 +1,5 @@
 import React from "react";
-import {
-	Box,
-	Grid,
-	SxProps,
-	Theme,
-	Typography,
-	useMediaQuery,
-	useTheme,
-} from "@mui/material";
+import { Grid, SxProps, Theme } from "@mui/material";
 
 interface CardProps {
 	children?: React.ReactNode;
@@ -16,8 +8,6 @@ interface CardProps {
 }
 
 const Card: React.VFC<CardProps> = ({ children, sx, centered = false }) => {
-	const theme = useTheme();
-	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
 	return (
 		<Grid
 			container

@@ -4,10 +4,8 @@ import { useNavigate } from "react-router-dom";
 import CenterCard from "../layouts/CenterCard";
 import {
 	Grid,
-	Box,
 	Typography,
 	Button,
-	Link,
 	TextField,
 	IconButton,
 	NativeSelect,
@@ -26,7 +24,6 @@ import {
 	doc,
 	getDoc,
 	setDoc,
-	addDoc,
 	updateDoc,
 	increment,
 	serverTimestamp,
@@ -111,7 +108,7 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 								},
 								requests: [],
 							}).then(res => {
-								console.log("Document written successfully");
+								console.log("Hosted live successfully");
 
 								updateDoc(
 									doc(collection(db, "User"), userAuth?.uid),
@@ -137,7 +134,7 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 									});
 							});
 						} else {
-							console.log("No such document!");
+							console.log("Fail to host live");
 							toast.dismiss(toastId);
 							toast.error("라이브 생성에 실패했습니다");
 						}
@@ -178,7 +175,6 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 			getDoc(doc(db, "Live", user?.currentLive))
 				.then(doc => {
 					if (doc.exists()) {
-						console.log("We Have!");
 						const today = new Date();
 						today.setDate(today.getDate() - 1);
 						if (
@@ -189,11 +185,10 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 								(doc.data() as Live).participants
 							).includes(userAuth?.uid || "")
 						) {
+							console.log("Found current live!");
 							setCurrentLive(doc.data() as Live);
 							setOpen(true);
 						}
-					} else {
-						console.log("No Doc!");
 					}
 				})
 				.catch(err => console.log(err));
@@ -249,8 +244,8 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 						color="info"
 						value={liveTitle}
 						onChange={e => setLiveTitle(e.target.value)}
-						error={error == "title"}
-						helperText={error == "title" && "제목을 입력해주세요"}
+						error={error === "title"}
+						helperText={error === "title" && "제목을 입력해주세요"}
 					/>
 					<TextField
 						fullWidth
@@ -260,9 +255,9 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 						sx={{ mt: 3 }}
 						value={position}
 						onChange={e => setPosition(e.target.value)}
-						error={error == "position"}
+						error={error === "position"}
 						helperText={
-							error == "position" && "포지션을 입력해주세요"
+							error === "position" && "포지션을 입력해주세요"
 						}
 					/>
 
@@ -305,7 +300,7 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 							color="info"
 							value={password || ""}
 							onChange={e => setPassword(e.target.value)}
-							error={error == "password"}
+							error={error === "password"}
 							helperText={"영문과 숫자만 설정 가능합니다"}
 						/>
 					)}

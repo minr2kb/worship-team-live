@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Main from "./pages/Main";
 import LiveDashboard from "./pages/LiveDashboard";
@@ -22,18 +22,16 @@ function App() {
 	useEffect(() => {
 		setIsLoading(true);
 		onAuthStateChanged(auth, user => {
-			console.log(user);
 			if (user) {
 				const userCopy = JSON.parse(JSON.stringify(user));
 				setUserAuth(userCopy);
 				getDoc(doc(db, "User", user.uid))
 					.then(docSnap => {
 						if (docSnap.exists()) {
-							console.log("Document data:", docSnap.data());
 							setUser(JSON.parse(JSON.stringify(docSnap.data())));
 							setIsLoading(false);
 						} else {
-							console.log("No such document!");
+							console.log("No user!");
 							const userRef = collection(db, "User");
 
 							const newUserData = {

@@ -12,33 +12,45 @@ import { auth, provider } from "../firebase";
 
 const Login: React.VFC = () => {
 	const signInWithGoogle = () => {
-		if (window.navigator.onLine) {
-			toast.loading("구글 로그인 중...");
-			setPersistence(auth, browserLocalPersistence)
-				.then(() => {
-					return signInWithRedirect(auth, provider);
-				})
-				.catch(error => {
-					console.log(error);
-				});
+		if (window.navigator.userAgent.includes("KAKAOTALK")) {
+			window.alert(
+				"카카오톡 브라우져에서는 구글 로그인이 불가합니다😢\n링크를 복사해서 다른 브라우져(크롬, 사파리 등)에서 열어주세요!"
+			);
 		} else {
-			toast.error("인터넷 연결이 필요합니다");
+			if (window.navigator.onLine) {
+				toast.loading("구글 로그인 중...");
+				setPersistence(auth, browserLocalPersistence)
+					.then(() => {
+						return signInWithRedirect(auth, provider);
+					})
+					.catch(err => {
+						console.log(err);
+					});
+			} else {
+				toast.error("인터넷 연결이 필요합니다");
+			}
 		}
 	};
 
 	const signInAsGuest = () => {
-		if (window.navigator.onLine) {
-			const toastId = toast.loading("게스트로 로그인 중...");
-			signInAnonymously(auth)
-				.then(() => {
-					toast.dismiss(toastId);
-					console.log("success");
-				})
-				.catch(error => {
-					console.log(error);
-				});
+		if (window.navigator.userAgent.includes("KAKAOTALK")) {
+			window.alert(
+				"카카오톡 브라우져에서는 구글 로그인이 불가합니다😢\n링크를 복사해서 다른 브라우져(크롬, 사파리 등)에서 열어주세요!"
+			);
 		} else {
-			toast.error("인터넷 연결이 필요합니다");
+			if (window.navigator.onLine) {
+				const toastId = toast.loading("게스트로 로그인 중...");
+				signInAnonymously(auth)
+					.then(() => {
+						toast.dismiss(toastId);
+						console.log("Guest login success");
+					})
+					.catch(err => {
+						console.log(err);
+					});
+			} else {
+				toast.error("인터넷 연결이 필요합니다");
+			}
 		}
 	};
 

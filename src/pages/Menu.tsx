@@ -88,8 +88,8 @@ const Menu: React.VFC<MenuProps> = ({ setMode }) => {
 								.then(() => {
 									window.location.reload();
 								})
-								.catch(error => {
-									console.log(error);
+								.catch(err => {
+									console.log(err);
 								});
 						}}
 					>

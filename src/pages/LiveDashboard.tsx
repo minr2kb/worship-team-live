@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Card from "../components/Card";
@@ -13,8 +13,6 @@ import {
 	useMediaQuery,
 	useTheme,
 	Divider,
-	InputBase,
-	Input,
 	TextField,
 	Paper,
 	BottomNavigation,
@@ -30,32 +28,22 @@ import {
 	Close,
 	ArrowRightAlt,
 	Send,
-	Restore,
-	Favorite,
-	Archive,
 	Assignment,
 	Announcement,
 } from "@mui/icons-material";
-import { RequestPacket, Live, Request, RequestSet } from "../interfaces/types";
+import { RequestPacket, Live, Request } from "../interfaces/types";
 import { use100vh } from "react-div-100vh";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useRecoilState } from "recoil";
-import { userRecoil, userAuthRecoil, isLoadingRecoil } from "../states/recoil";
+import { userRecoil, userAuthRecoil } from "../states/recoil";
 import {
 	collection,
 	doc,
-	getDoc,
-	setDoc,
-	addDoc,
 	updateDoc,
-	increment,
-	serverTimestamp,
 	onSnapshot,
 	arrayUnion,
 	deleteDoc,
 	deleteField,
-	query,
-	where,
 	Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
@@ -95,7 +83,7 @@ const LiveDashboard = () => {
 			return fromMe
 				? theme.palette.success.light
 				: theme.palette.text.disabled;
-		} else if (status == "rejected") {
+		} else if (status === "rejected") {
 			return fromMe
 				? theme.palette.error.light
 				: theme.palette.text.disabled;
@@ -110,7 +98,7 @@ const LiveDashboard = () => {
 		if (status === "unchecked") return fromMe ? "확인중" : "";
 		else if (status === "accepted") {
 			return fromMe ? "수락됨" : "수락함";
-		} else if (status == "rejected") {
+		} else if (status === "rejected") {
 			return fromMe ? "거절됨" : "거절함";
 		}
 		return "";
@@ -145,7 +133,7 @@ const LiveDashboard = () => {
 		const toastId = toast.loading("응답 전송중...");
 		updateDoc(doc(collection(db, "Live"), id), {
 			requests: liveData?.requests.map((request: RequestPacket) =>
-				request.id == reqId ? { ...request, status: status } : request
+				request.id === reqId ? { ...request, status: status } : request
 			),
 		})
 			.then(res => {
@@ -214,18 +202,18 @@ const LiveDashboard = () => {
 							.data()
 							?.requests.filter(
 								(request: RequestPacket) =>
-									request.status == "unchecked" &&
+									request.status === "unchecked" &&
 									request.from !== userAuth?.uid &&
-									(request.to == userAuth?.uid ||
-										request.to == "ALL")
+									(request.to === userAuth?.uid ||
+										request.to === "ALL")
 							).length;
 
 						if (newAlertCount - alertCountRef.current > 0) {
+							// window.navigator.vibrate(1);
 							toast("🚨 새로운 요청이 있습니다!");
 						}
 						updateAlertCount(newAlertCount);
 					} else {
-						console.log(doc.metadata);
 						console.log("Live Not Found");
 						setPageLoadError(
 							"종료되었거나 존재하지 않는 라이브입니다"
@@ -256,7 +244,6 @@ const LiveDashboard = () => {
 				liveData.participants[userAuth?.uid || ""] &&
 				liveData.participants[userAuth?.uid || ""]?.isVerified
 			) {
-				console.log("!!!!!!!!!!!!!");
 				setMyRequests(
 					user?.requestList[
 						liveData?.participants[userAuth?.uid || ""]
@@ -264,7 +251,6 @@ const LiveDashboard = () => {
 					].list || defaultRequestSet.list
 				);
 			} else {
-				console.log("?????????????");
 				setPageLoadError("라이브 참여 권한이 없습니다");
 			}
 			setIsLoading(false);
@@ -287,7 +273,7 @@ const LiveDashboard = () => {
 				</MainLayout>
 			) : (
 				<DashboardLayout>
-					{(!isTablet || page == 0) && (
+					{(!isTablet || page === 0) && (
 						<Grid
 							container
 							item
@@ -323,12 +309,12 @@ const LiveDashboard = () => {
 												pr: 2,
 											}}
 											onClick={
-												liveData?.host == userAuth?.uid
+												liveData?.host === userAuth?.uid
 													? deleteLive
 													: exitLive
 											}
 										>
-											{liveData?.host == userAuth?.uid
+											{liveData?.host === userAuth?.uid
 												? "종료하기"
 												: "나가기"}
 										</Button>
@@ -341,7 +327,7 @@ const LiveDashboard = () => {
 											<Typography variant="h4">
 												라이브 정보
 											</Typography>
-											{liveData?.host ==
+											{liveData?.host ===
 												userAuth?.uid && (
 												<div
 													style={{
@@ -503,11 +489,11 @@ const LiveDashboard = () => {
 														request: RequestPacket,
 														idx: number
 													) =>
-														(request.from ==
+														(request.from ===
 															userAuth?.uid ||
-															request.to ==
+															request.to ===
 																userAuth?.uid ||
-															request.to ==
+															request.to ===
 																"ALL") && (
 															<Box
 																mr={3}
@@ -519,7 +505,7 @@ const LiveDashboard = () => {
 																		backgroundColor:
 																			requestCardColor(
 																				request.status,
-																				request.from ==
+																				request.from ===
 																					userAuth?.uid
 																			),
 																	}}
@@ -565,12 +551,12 @@ const LiveDashboard = () => {
 																						mr: 1,
 																					}}
 																				>
-																					{request.from ==
+																					{request.from ===
 																					userAuth?.uid ? (
 																						<b>
 																							나
 																						</b>
-																					) : request.from ==
+																					) : request.from ===
 																					  "ALL" ? (
 																						<b>
 																							ALL
@@ -600,12 +586,12 @@ const LiveDashboard = () => {
 																					}}
 																				>
 																					{" "}
-																					{request.to ==
+																					{request.to ===
 																					userAuth?.uid ? (
 																						<b>
 																							나
 																						</b>
-																					) : request.to ==
+																					) : request.to ===
 																					  "ALL" ? (
 																						<b>
 																							ALL
@@ -634,7 +620,7 @@ const LiveDashboard = () => {
 																		>
 																			{requestStatus(
 																				request.status,
-																				request.from ==
+																				request.from ===
 																					userAuth?.uid
 																			) ? (
 																				<Typography
@@ -646,7 +632,7 @@ const LiveDashboard = () => {
 																				>
 																					{requestStatus(
 																						request.status,
-																						request.from ==
+																						request.from ===
 																							userAuth?.uid
 																					)}
 																				</Typography>
@@ -715,7 +701,7 @@ const LiveDashboard = () => {
 					)}
 
 					{/* 오른쪽 #fff*/}
-					{(!isTablet || page == 1) && (
+					{(!isTablet || page === 1) && (
 						<Grid
 							container
 							item
@@ -760,7 +746,7 @@ const LiveDashboard = () => {
 											key={"ALL"}
 											onClick={() => setReceiver("ALL")}
 											color={
-												receiver == "ALL"
+												receiver === "ALL"
 													? "info"
 													: "primary"
 											}
@@ -768,7 +754,7 @@ const LiveDashboard = () => {
 											sx={{
 												fontWeight: "normal",
 												color:
-													receiver == "ALL"
+													receiver === "ALL"
 														? "white"
 														: "#505050",
 												p: "8px",
@@ -794,7 +780,7 @@ const LiveDashboard = () => {
 															)
 														}
 														color={
-															participant ==
+															participant ===
 															receiver
 																? "info"
 																: "primary"
@@ -804,7 +790,7 @@ const LiveDashboard = () => {
 															fontWeight:
 																"normal",
 															color:
-																participant ==
+																participant ===
 																receiver
 																	? "white"
 																	: "#505050",
