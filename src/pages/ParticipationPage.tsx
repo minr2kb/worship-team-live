@@ -53,29 +53,67 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 	const [open, setOpen] = useState(false);
 	const [currentLive, setCurrentLive] = useState<Live | null>(null);
 
+	const [dialogMode, setDialogMode] = useState<"continue" | "password">(
+		"continue"
+	);
+	const [password, setPassword] = useState("");
+	const [livePassword, setLivePassword] = useState<string>("");
+
+	const participateInLive = () => {
+		const toastId = toast.loading("라이브 참가중...");
+		updateDoc(doc(collection(db, "Live"), liveCode), {
+			[`participants.${userAuth?.uid}`]: {
+				position: position,
+				isVerified: true,
+				requestSet: currentRequestSet,
+			},
+		})
+			.then(res => {
+				updateDoc(doc(collection(db, "User"), userAuth?.uid), {
+					currentLive: liveCode,
+				})
+					.then(res => {
+						if (user)
+							setUser({
+								...user,
+								currentLive: liveCode,
+							});
+						toast.dismiss(toastId);
+						navigate(`/live/${liveCode}`);
+					})
+					.catch(err => {
+						console.log(err);
+						toast.dismiss(toastId);
+						toast.error("라이브 생성에 실패했습니다");
+					});
+			})
+			.catch(err =>
+				toast.error("종료되었거나 존재하지 않는 라이브 코드입니다.")
+			);
+	};
+
 	const startLive = () => {
 		if (liveCode.length < 1) {
 			setError("code");
 		} else if (position.length < 1) {
 			setError("position");
 		} else {
-			if (userAuth?.uid) {
-				updateDoc(doc(collection(db, "Live"), liveCode), {
-					[`participants.${userAuth?.uid}`]: {
-						position: position,
-						isVerified: true,
-						requestSet: currentRequestSet,
-					},
-				})
-					.then(res => {
-						navigate(`/live/${liveCode}`);
-					})
-					.catch(err =>
-						window.alert(
-							"종료되었거나 존재하지 않는 라이브 코드입니다."
-						)
+			getDoc(doc(db, "Live", liveCode)).then(docSnapshot => {
+				if (docSnapshot.exists()) {
+					const pw = (docSnapshot.data() as Live).password;
+					if (pw) {
+						setDialogMode("password");
+						setLivePassword(pw);
+						setOpen(true);
+					} else {
+						participateInLive();
+					}
+				} else {
+					toast.error(
+						"종료되었거나 존재하지 않는 라이브 코드입니다."
 					);
-			}
+				}
+			});
 		}
 	};
 
@@ -220,41 +258,95 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 				</Grid>
 			</CenterCard>
 			<Dialog fullWidth maxWidth={"mobile"} open={open}>
-				<DialogContent>
-					<DialogContentText>
-						진행중이던 라이브(<b>{currentLive?.title || ""}</b>)가
-						존재합니다. 계속 참여하시겠습니까?
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button
-						variant="text"
-						sx={{
-							boxShadow: "none",
-							p: 1,
-							// color: "#FF3B30",
-						}}
-						onClick={() => {
-							exitLive(currentLive?.code || "");
-							setOpen(false);
-						}}
-					>
-						{"나가기"}
-					</Button>
-					<Button
-						variant="text"
-						sx={{
-							boxShadow: "none",
-							p: 1,
-							color: "#007AFF",
-						}}
-						onClick={() => {
-							navigate(`/live/${currentLive?.code || ""}`);
-						}}
-					>
-						{"계속하기"}
-					</Button>
-				</DialogActions>
+				{dialogMode == "continue" ? (
+					<>
+						<DialogContent>
+							<DialogContentText>
+								진행중이던 라이브(
+								<b>{currentLive?.title || ""}</b>
+								)가 존재합니다. 계속 참여하시겠습니까?
+							</DialogContentText>
+						</DialogContent>
+						<DialogActions>
+							<Button
+								variant="text"
+								sx={{
+									boxShadow: "none",
+									p: 1,
+								}}
+								onClick={() => {
+									exitLive(currentLive?.code || "");
+									setOpen(false);
+								}}
+							>
+								{"나가기"}
+							</Button>
+							<Button
+								variant="text"
+								sx={{
+									boxShadow: "none",
+									p: 1,
+									color: "#007AFF",
+								}}
+								onClick={() => {
+									navigate(
+										`/live/${currentLive?.code || ""}`
+									);
+								}}
+							>
+								{"계속하기"}
+							</Button>
+						</DialogActions>
+					</>
+				) : (
+					<>
+						<DialogContent>
+							<TextField
+								sx={{ mt: 2 }}
+								autoFocus
+								label="비밀번호"
+								fullWidth
+								color="info"
+								value={password}
+								onChange={e =>
+									setPassword(e.currentTarget.value)
+								}
+							/>
+						</DialogContent>
+						<DialogActions>
+							<Button
+								variant="text"
+								sx={{
+									boxShadow: "none",
+									p: 1,
+								}}
+								onClick={() => setOpen(false)}
+							>
+								취소
+							</Button>
+							<Button
+								variant="text"
+								sx={{
+									boxShadow: "none",
+									p: 1,
+
+									color: "#007AFF",
+								}}
+								onClick={() => {
+									if (password == livePassword) {
+										participateInLive();
+									} else {
+										toast.error(
+											"라이브의 비밀번호가 옳지 않습니다"
+										);
+									}
+								}}
+							>
+								{"확인"}
+							</Button>
+						</DialogActions>
+					</>
+				)}
 			</Dialog>
 		</>
 	);

@@ -20,6 +20,12 @@ const Main: React.VFC = () => {
 		null
 	);
 
+	useEffect(() => {
+		if (!window.navigator.onLine) {
+			toast.error("인터넷 연결이 필요합니다");
+		}
+	}, []);
+
 	const endTransition = () => {
 		setTimeout(() => setTransition(mode), SLIDE_DURATION);
 	};

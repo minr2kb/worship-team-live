@@ -16,6 +16,7 @@ import {
 	DialogActions,
 	Dialog,
 	DialogContentText,
+	Switch,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
@@ -50,10 +51,13 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 	const [user, setUser] = useRecoilState(userRecoil);
 	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
 	const [currentRequestSet, setCurrentRequestSet] = useState<number>(0);
-	const [error, setError] = useState<"title" | "position" | null>(null);
+	const [error, setError] = useState<
+		"title" | "position" | "password" | null
+	>(null);
 	const [open, setOpen] = useState(false);
 	const [liveTitle, setLiveTitle] = useState("");
 	const [position, setPosition] = useState("");
+	const [password, setPassword] = useState<string | null>(null);
 	const [currentLive, setCurrentLive] = useState<Live | null>(null);
 
 	const deleteLives = () => {
@@ -74,6 +78,8 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 			setError("title");
 		} else if (position.length < 1) {
 			setError("position");
+		} else if (password !== null && !/[a-zA-Z0-9]/.test(password)) {
+			setError("password");
 		} else {
 			setError(null);
 			if (userAuth?.uid) {
@@ -93,7 +99,7 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 							setDoc(doc(collection(db, "Live"), code), {
 								title: liveTitle,
 								code: code,
-								password: null,
+								password: password,
 								host: userAuth?.uid,
 								createdTime: serverTimestamp(),
 								participants: {
@@ -265,7 +271,7 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 							fullWidth
 							variant="filled"
 							value={currentRequestSet}
-							sx={{ mt: 5 }}
+							sx={{ mt: 5, mb: 3 }}
 							onChange={e =>
 								setCurrentRequestSet(Number(e.target.value))
 							}
@@ -279,6 +285,31 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 							)}
 						</NativeSelect>
 					)}
+					<Grid container alignItems={"center"}>
+						<Switch
+							color="info"
+							value={password ? true : false}
+							onChange={e => {
+								e.target.checked
+									? setPassword("")
+									: setPassword(null);
+							}}
+						/>
+						<Typography>비밀번호 설정</Typography>
+					</Grid>
+					{password !== null && (
+						<TextField
+							fullWidth
+							label="비밀번호"
+							variant="standard"
+							color="info"
+							value={password || ""}
+							onChange={e => setPassword(e.target.value)}
+							error={error == "password"}
+							helperText={"영문과 숫자만 설정 가능합니다"}
+						/>
+					)}
+
 					<Tooltip
 						title="⏰ 24시간 이후에는 자동 삭제가 되는 점 참고해주세요!"
 						placement="bottom"

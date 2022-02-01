@@ -317,7 +317,6 @@ const LiveDashboard = () => {
 											variant="contained"
 											sx={{
 												fontWeight: "normal",
-												// fontSize: "14px",
 												color: "white",
 												p: "3px",
 												pl: 2,

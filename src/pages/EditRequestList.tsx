@@ -343,7 +343,7 @@ const EditRequestList = () => {
 									)
 								) {
 									if (requestSets.length < 2) {
-										window.alert(
+										toast.error(
 											"최소 한 개 이상의 리스트가 필요합니다."
 										);
 									} else {
