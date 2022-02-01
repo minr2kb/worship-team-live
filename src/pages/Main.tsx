@@ -5,16 +5,19 @@ import Login from "./Login";
 import Menu from "./Menu";
 import HostingPage from "./HostingPage";
 import ParticipationPage from "./ParticipationPage";
-import { Box, Slide } from "@mui/material";
+import { Box, Fab, Slide } from "@mui/material";
 import { useRecoilState } from "recoil";
-import { userRecoil, isLoadingRecoil } from "../states/recoil";
+import { userRecoil, isLoadingRecoil, themeModeRecoil } from "../states/recoil";
 import { Bars } from "react-loader-spinner";
+import { DarkMode, LightMode } from "@mui/icons-material";
+import { light } from "@mui/material/styles/createPalette";
 
 const SLIDE_DURATION = 200;
 
 const Main: React.VFC = () => {
 	const [user, setUser] = useRecoilState(userRecoil);
 	const [isLoading, setIsLoading] = useRecoilState(isLoadingRecoil);
+	const [themeMode, setThemeMode] = useRecoilState(themeModeRecoil);
 	const [mode, setMode] = useState<"host" | "participant" | null>(null);
 	const [transition, setTransition] = useState<"host" | "participant" | null>(
 		null
@@ -36,7 +39,13 @@ const Main: React.VFC = () => {
 			<MainLayout>
 				{isLoading ? (
 					<>
-						<Bars color="#505050" height={40} width={50} />
+						<Bars
+							color={
+								themeMode === "light" ? "#505050" : "#F0F0F0"
+							}
+							height={40}
+							width={50}
+						/>
 					</>
 				) : (
 					<>
@@ -98,6 +107,22 @@ const Main: React.VFC = () => {
 					</>
 				)}
 			</MainLayout>
+			{!isLoading && (
+				<Fab
+					sx={{
+						position: "absolute",
+						bottom: "7%",
+						right: "10%",
+					}}
+					size={"large"}
+					color={"secondary"}
+					onClick={() =>
+						setThemeMode(themeMode == "light" ? "dark" : "light")
+					}
+				>
+					{themeMode === "light" ? <DarkMode /> : <LightMode />}
+				</Fab>
+			)}
 		</>
 	);
 };

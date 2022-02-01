@@ -45,7 +45,6 @@ import { useNavigate } from "react-router-dom";
 
 const SortableItem = (props: any) => {
 	const { items, setItems, id, value, isMobile } = props;
-	const sortable = useSortable({ id: id });
 	const {
 		attributes,
 		listeners,
@@ -53,12 +52,13 @@ const SortableItem = (props: any) => {
 		setNodeRef,
 		transform,
 		transition,
-	} = sortable;
+	} = useSortable({ id: id });
+	const theme = useTheme();
 
 	const style: React.CSSProperties = {
 		transformOrigin: "0 0",
 		opacity: isDragging ? 0.3 : 1,
-		backgroundColor: "white",
+		backgroundColor: theme.palette.primary.main,
 		boxShadow: "4px 4px 10px rgba(0,0,0,0.1)",
 		borderRadius: "7px",
 		paddingTop: 7,
@@ -387,7 +387,8 @@ const EditRequestList = () => {
 									container
 									justifyContent={"center"}
 									sx={{
-										backgroundColor: "white",
+										backgroundColor:
+											theme.palette.primary.main,
 										boxShadow:
 											"4px 4px 10px rgba(0,0,0,0.1)",
 										borderRadius: "7px",
@@ -408,7 +409,7 @@ const EditRequestList = () => {
 											])
 										}
 									>
-										<Add />
+										<Add color="secondary" />
 									</IconButton>
 								</Grid>
 								{items.length < 1 && (

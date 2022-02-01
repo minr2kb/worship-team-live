@@ -16,3 +16,8 @@ export const isLoadingRecoil = atom<boolean>({
 	key: "isLoadingRecoil",
 	default: true,
 });
+
+export const themeModeRecoil = atom<"light" | "dark" | string>({
+	key: "themeModeRecoil",
+	default: "light",
+});

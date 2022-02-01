@@ -99,7 +99,7 @@ const Menu: React.VFC<MenuProps> = ({ setMode }) => {
 								mt: 4,
 								mb: 4,
 								fontWeight: "bold",
-								color: "#505050",
+								color: theme.palette.secondary.main,
 								textDecoration: "underline",
 								cursor: "pointer",
 							}}

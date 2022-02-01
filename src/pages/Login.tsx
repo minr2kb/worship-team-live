@@ -1,7 +1,15 @@
 import React from "react";
 import Card from "../layouts/CenterCard";
 import toast, { Toaster } from "react-hot-toast";
-import { Grid, Box, Typography, Button, Link, Tooltip } from "@mui/material";
+import {
+	Grid,
+	Box,
+	Typography,
+	Button,
+	Link,
+	Tooltip,
+	useTheme,
+} from "@mui/material";
 import {
 	signInAnonymously,
 	signInWithRedirect,
@@ -11,6 +19,7 @@ import {
 import { auth, provider } from "../firebase";
 
 const Login: React.VFC = () => {
+	const theme = useTheme();
 	const signInWithGoogle = () => {
 		if (window.navigator.userAgent.includes("KAKAOTALK")) {
 			window.alert(
@@ -137,8 +146,9 @@ const Login: React.VFC = () => {
 							href="https://minr2kb.notion.site/df3634209d394602b37c41f7a91a1486"
 							sx={{
 								fontWeight: "bold",
-								color: "#505050",
-								textDecorationColor: "#505050",
+								color: theme.palette.secondary.main,
+								textDecorationColor:
+									theme.palette.secondary.main,
 								ml: "7px",
 								cursor: "pointer",
 							}}
@@ -158,8 +168,9 @@ const Login: React.VFC = () => {
 							href="/demo"
 							sx={{
 								fontWeight: "bold",
-								color: "#505050",
-								textDecorationColor: "#505050",
+								color: theme.palette.secondary.main,
+								textDecorationColor:
+									theme.palette.secondary.main,
 								ml: "7px",
 								cursor: "pointer",
 							}}

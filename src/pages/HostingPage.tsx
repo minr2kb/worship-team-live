@@ -15,6 +15,7 @@ import {
 	Dialog,
 	DialogContentText,
 	Switch,
+	useTheme,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
@@ -45,6 +46,7 @@ interface HostingPageProps {
 
 const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 	const navigate = useNavigate();
+	const theme = useTheme();
 	const [user, setUser] = useRecoilState(userRecoil);
 	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
 	const [currentRequestSet, setCurrentRequestSet] = useState<number>(0);
@@ -335,7 +337,6 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 						sx={{
 							boxShadow: "none",
 							p: 1,
-							// color: "#FF3B30",
 						}}
 						onClick={() => {
 							exitLive(currentLive?.code || "");

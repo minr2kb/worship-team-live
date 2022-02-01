@@ -24,6 +24,7 @@ import {
 	Dialog,
 	DialogContent,
 	DialogActions,
+	Switch,
 } from "@mui/material";
 import {
 	ContentCopy,
@@ -35,6 +36,8 @@ import {
 	Assignment,
 	Announcement,
 } from "@mui/icons-material";
+import { useRecoilState } from "recoil";
+import { themeModeRecoil } from "../states/recoil";
 import { RequestPacket, Live, Request } from "../interfaces/types";
 import { use100vh } from "react-div-100vh";
 import { CopyToClipboard } from "react-copy-to-clipboard";
@@ -47,6 +50,7 @@ const Demo = () => {
 	const id = "268436";
 	const theme = useTheme();
 	const navigate = useNavigate();
+	const [themeMode, setThemeMode] = useRecoilState(themeModeRecoil);
 	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
 	const isTablet = useMediaQuery(theme.breakpoints.down("tablet"));
 	const userAuth = { uid: "0" };
@@ -68,17 +72,21 @@ const Demo = () => {
 		status: "unchecked" | "accepted" | "rejected",
 		fromMe: boolean
 	): string => {
-		if (status === "unchecked") return "white";
+		if (status === "unchecked") return theme.palette.primary.main;
 		else if (status === "accepted") {
 			return fromMe
-				? theme.palette.success.light
+				? themeMode === "light"
+					? theme.palette.success.light
+					: theme.palette.success.main
 				: theme.palette.text.disabled;
 		} else if (status === "rejected") {
 			return fromMe
-				? theme.palette.error.light
+				? themeMode === "light"
+					? theme.palette.error.light
+					: theme.palette.error.main
 				: theme.palette.text.disabled;
 		}
-		return "white";
+		return theme.palette.primary.main;
 	};
 
 	const requestStatus = (
@@ -265,7 +273,12 @@ const Demo = () => {
 												: "나가기"}
 										</Button>
 									</Grid>
-									<Card>
+									<Card
+										sx={{
+											backgroundColor:
+												theme.palette.primary.main,
+										}}
+									>
 										<Grid
 											container
 											justifyContent={"space-between"}
@@ -346,7 +359,14 @@ const Demo = () => {
 										mt={spacing}
 									>
 										<Grid container item xs={6}>
-											<Card centered>
+											<Card
+												centered
+												sx={{
+													backgroundColor:
+														theme.palette.primary
+															.main,
+												}}
+											>
 												<Typography variant="h4">
 													내 포지션
 												</Typography>
@@ -363,7 +383,14 @@ const Demo = () => {
 											</Card>
 										</Grid>
 										<Grid container item xs={6}>
-											<Card centered>
+											<Card
+												centered
+												sx={{
+													backgroundColor:
+														theme.palette.primary
+															.main,
+												}}
+											>
 												<Typography variant="h4">
 													시작 시간
 												</Typography>
@@ -666,21 +693,32 @@ const Demo = () => {
 									<Grid
 										container
 										justifyContent={"space-between"}
-										mb={2}
+										mb={1}
 									>
 										<Typography variant="h1">
 											요청하기
 										</Typography>
-										<Button
-											variant="contained"
+										<Box
 											sx={{
-												visibility: "hidden",
-												fontWeight: "normal",
-												p: "3px",
+												display: "flex",
+												alignItems: "center",
 											}}
 										>
-											채우기용
-										</Button>
+											<Typography variant="body1">
+												다크모드
+											</Typography>
+											<Switch
+												checked={themeMode === "dark"}
+												onChange={e =>
+													setThemeMode(
+														e.target.checked
+															? "dark"
+															: "light"
+													)
+												}
+												color={"secondary"}
+											/>
+										</Box>
 									</Grid>
 									<Grid
 										container
@@ -700,8 +738,9 @@ const Demo = () => {
 												fontWeight: "normal",
 												color:
 													receiver === "ALL"
-														? "white"
-														: "#505050",
+														? "#fff"
+														: theme.palette.text
+																.primary,
 												p: "8px",
 												pl: 2,
 												pr: 2,
@@ -737,8 +776,11 @@ const Demo = () => {
 															color:
 																participant ===
 																receiver
-																	? "white"
-																	: "#505050",
+																	? "#fff"
+																	: theme
+																			.palette
+																			.text
+																			.primary,
 															p: "8px",
 															pl: 2,
 															pr: 2,
@@ -782,7 +824,6 @@ const Demo = () => {
 											sx={{
 												flex: 1,
 												mr: 2,
-												backgroundColor: "white",
 												boxShadow:
 													"4px 4px 10px rgba(0,0,0,0.1)",
 												borderRadius: "7px",
