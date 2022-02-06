@@ -15,10 +15,12 @@ import {
 } from "./states/recoil";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, doc, getDoc, setDoc } from "firebase/firestore";
+import { getToken } from "firebase/messaging";
 import { auth, db } from "./firebase";
 import EditRequestList from "./pages/EditRequestList";
 import { use100vh } from "react-div-100vh";
 import { Navigate } from "react-router-dom";
+import NoSleep from "nosleep.js";
 
 function App() {
 	const [user, setUser] = useRecoilState(userRecoil);
@@ -82,6 +84,32 @@ function App() {
 			}
 		});
 	}, []);
+
+	useEffect(() => {
+		const noSleep = new NoSleep();
+		document.addEventListener(
+			"click",
+			function enableNoSleep() {
+				document.removeEventListener("click", enableNoSleep, false);
+				noSleep.enable();
+			},
+			false
+		);
+		return () => noSleep.disable();
+	}, []);
+
+	// useEffect(() => {
+	// 	Notification.requestPermission().then(permission => {
+	// 		if (permission === "granted") {
+	// 			console.log("Notification permission granted.");
+	// 			getToken(messaging, {
+	// 				vapidKey: process.env.REACT_APP_FIREBASE_VAPID_KEY,
+	// 			});
+	// 		} else {
+	// 			console.log("Unable to get permission to notify.");
+	// 		}
+	// 	});
+	// }, []);
 
 	useEffect(() => {
 		window.localStorage.setItem("themeMode", themeMode);

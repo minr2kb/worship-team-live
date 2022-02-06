@@ -124,6 +124,7 @@ const LiveDashboard = () => {
 				}),
 			})
 				.then(res => {
+					setDetailedRequest("");
 					toast.dismiss(toastId);
 					toast.success("요청이 전송되었습니다");
 				})

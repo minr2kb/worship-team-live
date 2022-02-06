@@ -27,12 +27,14 @@ const Login: React.VFC = () => {
 			);
 		} else {
 			if (window.navigator.onLine) {
-				toast.loading("구글 로그인 중...");
+				const toastId = toast.loading("구글 로그인 중...");
 				setPersistence(auth, browserLocalPersistence)
 					.then(() => {
+						toast.dismiss(toastId);
 						return signInWithRedirect(auth, provider);
 					})
 					.catch(err => {
+						toast.dismiss(toastId);
 						console.log(err);
 					});
 			} else {
@@ -42,11 +44,11 @@ const Login: React.VFC = () => {
 	};
 
 	const signInAsGuest = () => {
-		if (window.navigator.userAgent.includes("KAKAOTALK")) {
-			window.alert(
-				"카카오톡 브라우져에서는 구글 로그인이 불가합니다😢\n링크를 복사해서 다른 브라우져(크롬, 사파리 등)에서 열어주세요!"
-			);
-		} else {
+		if (
+			window.confirm(
+				"게스트 모드에서는 라이브 만들기와 요청 버튼의 편집이 불가합니다. 계속하시겠습니까?"
+			)
+		) {
 			if (window.navigator.onLine) {
 				const toastId = toast.loading("게스트로 로그인 중...");
 				signInAnonymously(auth)
@@ -131,7 +133,7 @@ const Login: React.VFC = () => {
 								variant="contained"
 								onClick={signInAsGuest}
 							>
-								🕶 게스트 모드
+								🕶 게스트 로그인
 							</Button>
 						</Tooltip>
 					</Box>
