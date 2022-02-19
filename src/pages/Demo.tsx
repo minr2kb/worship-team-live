@@ -3,7 +3,7 @@ import toast, { Toaster } from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Card from "../components/Card";
 import {
-	defaultRequestSet,
+	defaultRequestSets,
 	demoRequests,
 	demoRequestsAndResponses,
 	demoLiveData,
@@ -25,6 +25,7 @@ import {
 	DialogContent,
 	DialogActions,
 	Switch,
+	NativeSelect,
 } from "@mui/material";
 import {
 	ContentCopy,
@@ -38,11 +39,16 @@ import {
 } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
 import { themeModeRecoil } from "../states/recoil";
-import { RequestPacket, Live, Request } from "../interfaces/types";
+import { RequestPacket, Live, Request, RequestSet } from "../interfaces/types";
 import { use100vh } from "react-div-100vh";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { Bars } from "react-loader-spinner";
 import MainLayout from "../layouts/MainLayout";
+import LiveInfoWidget from "../components/LiveInfoWidget";
+import MyPositionWidget from "../components/MyPositionWidget";
+import MyRequestSetWidget from "../components/MyRequestSetWidget";
+import RequestBox from "../components/RequestBox";
+import ParticipantButton from "../components/ParticipantButton";
 
 const spacing = 1;
 
@@ -58,13 +64,15 @@ const Demo = () => {
 	const [liveData, setLiveData] = useState<Live>(demoLiveData);
 	const [receiver, setReceiver] = useState<string | null>(null);
 	const [page, setPage] = useState(0);
-	const myRequests = defaultRequestSet.list;
+	// const myRequests =
+	// 	defaultRequestSets[liveData.participants[userAuth.uid].requestSet].list;
 	const [alertCount, setAlertCount] = useState(0);
 	const [detailedRequest, setDetailedRequest] = useState("");
 	const [open, setOpen] = useState(false);
-	const [liveTitle, setLiveTitle] = useState("");
+	const [positionText, setPositionText] = useState("");
 	const alertCountRef = useRef(0);
 	const RequestsRef = useRef<RequestPacket[]>([]);
+	const LiveDataRef = useRef<Live>(demoLiveData);
 
 	const height = use100vh();
 
@@ -113,13 +121,14 @@ const Demo = () => {
 			};
 			RequestsRef.current = [...RequestsRef.current, newRequest];
 			setLiveData({ ...liveData, requests: RequestsRef.current });
+			setDetailedRequest("");
 			toast.success("요청이 전송되었습니다");
 		} else {
 			toast.error("수신자를 선택해주세요");
 		}
 	};
 
-	const changeRequestState = (
+	const changeRequestStatus = (
 		reqId: string,
 		status: "unchecked" | "accepted" | "rejected"
 	) => {
@@ -127,7 +136,7 @@ const Demo = () => {
 			req.id === reqId ? { ...req, status: status } : req
 		);
 		setLiveData({
-			...liveData,
+			...LiveDataRef.current,
 			requests: RequestsRef.current,
 		});
 
@@ -158,11 +167,11 @@ const Demo = () => {
 	};
 
 	const autoCheck = (interval: number) => {
-		setTimeout(function check() {
+		return setTimeout(function check() {
 			const nextID = RequestsRef.current.filter(
 				req => req.status === "unchecked" && req.from === userAuth.uid
 			)[0]?.id;
-			changeRequestState(
+			changeRequestStatus(
 				nextID,
 				Math.random() < 0.2 ? "rejected" : "accepted"
 			);
@@ -172,9 +181,12 @@ const Demo = () => {
 
 	const autoRequest = (interval: number) => {
 		let i = 0;
-		function run() {
+		const loop = setInterval(() => {
 			RequestsRef.current = [...RequestsRef.current, demoRequests[i]];
-			setLiveData({ ...liveData, requests: RequestsRef.current });
+			setLiveData({
+				...LiveDataRef.current,
+				requests: RequestsRef.current,
+			});
 			i += 1;
 			const newAlertCount = RequestsRef.current.filter(
 				(request: RequestPacket) =>
@@ -187,11 +199,12 @@ const Demo = () => {
 				toast("🚨 새로운 요청이 있습니다!");
 			}
 			updateAlertCount(newAlertCount);
-			if (i < demoRequests.length) {
-				setTimeout(run, interval);
+			if (i >= demoRequests.length) {
+				clearInterval(loop);
 			}
-		}
-		run();
+		}, interval);
+
+		return loop;
 	};
 
 	const demoSetting = () => {
@@ -207,14 +220,19 @@ const Demo = () => {
 	};
 
 	useEffect(() => {
-		autoRequest(7000);
-		autoCheck(4000);
+		const ar = autoRequest(7000);
+		const ac = autoCheck(4000);
 		// demoSetting();
 		setIsLoading(false);
+		return () => {
+			clearInterval(ar);
+			clearTimeout(ac);
+		};
 	}, []);
 
 	useEffect(() => {
 		RequestsRef.current = liveData.requests;
+		LiveDataRef.current = liveData;
 	}, [liveData]);
 
 	return (
@@ -273,138 +291,83 @@ const Demo = () => {
 												: "나가기"}
 										</Button>
 									</Grid>
-									<Card
-										sx={{
-											backgroundColor:
-												theme.palette.primary.main,
-										}}
-									>
-										<Grid
-											container
-											justifyContent={"space-between"}
-										>
-											<Typography variant="h4">
-												라이브 정보
-											</Typography>
-											{liveData?.host ===
-												userAuth?.uid && (
-												<div
-													style={{
-														display: "flex",
-														alignItems: "center",
-														cursor: "pointer",
-													}}
-													onClick={() => {
-														setLiveTitle(
-															liveData?.title ||
-																""
-														);
-														setOpen(true);
-													}}
-												>
-													<Edit
-														color="secondary"
-														sx={{ fontSize: 14 }}
-													/>
-													<Typography variant="body2">
-														수정하기
-													</Typography>
-												</div>
-											)}
-										</Grid>
-										<Typography variant="body1">
-											제목: {liveData?.title}
-										</Typography>
-										<Grid container alignItems="center">
-											<Typography variant="body1">
-												{"라이브 코드: "}
-											</Typography>
-											<CopyToClipboard
-												text={id || ""}
-												onCopy={result =>
-													toast.success(
-														"클립보드에 복사되었습니다"
-													)
-												}
-											>
-												<div
-													style={{
-														display: "flex",
-														alignItems: "center",
-														cursor: "pointer",
-														marginLeft: "5px",
-													}}
-												>
-													<ContentCopy
-														color="secondary"
-														sx={{ fontSize: 15 }}
-													/>
-													<Typography
-														variant="body1"
-														sx={{
-															fontWeight: "bold",
-															textDecoration:
-																"underline",
-														}}
-													>
-														{id}
-													</Typography>
-												</div>
-											</CopyToClipboard>
-										</Grid>
-									</Card>
+
+									<LiveInfoWidget
+										title={liveData?.title || ""}
+										id={id || ""}
+										password={liveData?.password || null}
+									/>
 									<Grid
 										container
 										columnSpacing={spacing}
 										mt={spacing}
 									>
 										<Grid container item xs={6}>
-											<Card
-												centered
-												sx={{
-													backgroundColor:
-														theme.palette.primary
-															.main,
-												}}
-											>
-												<Typography variant="h4">
-													내 포지션
-												</Typography>
-												<Typography
-													variant="body1"
-													m={1}
-												>
-													{
+											<MyPositionWidget
+												position={
+													liveData?.participants[
+														userAuth?.uid || ""
+													]?.position || ""
+												}
+												onClick={() => {
+													setPositionText(
 														liveData?.participants[
 															userAuth?.uid || ""
-														]?.position
-													}
-												</Typography>
-											</Card>
+														]?.position || ""
+													);
+													setOpen(true);
+												}}
+											/>
 										</Grid>
 										<Grid container item xs={6}>
-											<Card
-												centered
-												sx={{
-													backgroundColor:
-														theme.palette.primary
-															.main,
-												}}
-											>
-												<Typography variant="h4">
-													시작 시간
-												</Typography>
-												<Typography
-													variant="body1"
-													m={1}
+											<MyRequestSetWidget>
+												<NativeSelect
+													variant="filled"
+													value={
+														liveData?.participants[
+															userAuth?.uid || ""
+														].requestSet || 0
+													}
+													onChange={e =>
+														setLiveData({
+															...liveData,
+															participants: {
+																...liveData?.participants,
+																[userAuth?.uid ||
+																""]: {
+																	...liveData
+																		?.participants[
+																		userAuth?.uid ||
+																			""
+																	],
+																	requestSet:
+																		Number(
+																			e
+																				.target
+																				.value
+																		),
+																},
+															},
+														})
+													}
 												>
-													{(
-														liveData?.createdTime as Date
-													)
-														.toTimeString()
-														.slice(0, 8)}
-												</Typography>
-											</Card>
+													{defaultRequestSets.map(
+														(
+															requestSet: RequestSet,
+															idx: number
+														) => (
+															<option
+																key={`reqset-${idx}`}
+																value={idx}
+															>
+																{
+																	requestSet.name
+																}
+															</option>
+														)
+													)}
+												</NativeSelect>
+											</MyRequestSetWidget>
 										</Grid>
 									</Grid>
 
@@ -420,12 +383,13 @@ const Demo = () => {
 											sx={{
 												display: "flex",
 												justifyContent: "center",
-												textAlign: "center",
-												width: 22,
-												height: 22,
-												borderRadius: 11,
+												alignItems: "center",
+												width: 28,
+												height: 28,
+												borderRadius: 14,
 												color: "white",
 												backgroundColor: "#FF3B30",
+												ml: 0.5,
 											}}
 										>
 											{alertCount}
@@ -467,202 +431,79 @@ const Demo = () => {
 																userAuth?.uid ||
 															request.to ===
 																"ALL") && (
-															<Box
-																mr={3}
-																key={idx}
-															>
-																<Card
-																	sx={{
-																		mb: spacing,
-																		backgroundColor:
-																			requestCardColor(
-																				request.status,
-																				request.from ===
-																					userAuth?.uid
-																			),
-																	}}
-																>
-																	<Grid
-																		container
-																		justifyContent={
-																			"space-between"
-																		}
-																		alignItems="center"
-																		sx={{
-																			flexWrap:
-																				"nowrap",
-																		}}
-																	>
-																		<Grid
-																			// container
-																			alignItems={
-																				"center"
-																			}
-																		>
-																			<Typography variant="h4">
-																				{
-																					request.text
-																				}
-																			</Typography>
-
-																			<Grid
-																				container
-																				alignItems={
-																					"center"
-																				}
-																				mt="2px"
-																				mr={
-																					1
-																				}
-																			>
-																				<Typography
-																					variant="body2"
-																					sx={{
-																						wordWrap:
-																							"normal",
-																						mr: 1,
-																					}}
-																				>
-																					{request.from ===
-																					userAuth?.uid ? (
-																						<b>
-																							나
-																						</b>
-																					) : request.from ===
-																					  "ALL" ? (
-																						<b>
-																							ALL
-																						</b>
-																					) : (
-																						liveData
-																							?.participants[
-																							request
-																								.from
-																						]
-																							?.position ||
-																						"(없음)"
-																					)}
-																				</Typography>
-																				<ArrowRightAlt
-																					sx={{
-																						fontSize: 15,
-																					}}
-																					color="secondary"
-																				/>
-																				<Typography
-																					variant="body2"
-																					sx={{
-																						wordWrap:
-																							"normal",
-																						ml: 1,
-																					}}
-																				>
-																					{" "}
-																					{request.to ===
-																					userAuth?.uid ? (
-																						<b>
-																							나
-																						</b>
-																					) : request.to ===
-																					  "ALL" ? (
-																						<b>
-																							ALL
-																						</b>
-																					) : (
-																						liveData
-																							?.participants[
-																							request
-																								.to
-																						]
-																							?.position ||
-																						"(없음)"
-																					)}
-																				</Typography>
-																			</Grid>
-																		</Grid>
-																		<Box
-																			sx={{
-																				display:
-																					"flex",
-																				alignItems:
-																					"center",
-																				flexWrap:
-																					"nowrap",
-																			}}
-																		>
-																			{requestStatus(
-																				request.status,
-																				request.from ===
-																					userAuth?.uid
-																			) ? (
-																				<Typography
-																					variant="body1"
-																					sx={{
-																						whiteSpace:
-																							"nowrap",
-																					}}
-																				>
-																					{requestStatus(
-																						request.status,
-																						request.from ===
-																							userAuth?.uid
-																					)}
-																				</Typography>
-																			) : (
-																				<>
-																					<Button
-																						color={
-																							"success"
-																						}
-																						variant="contained"
-																						sx={{
-																							color: "white",
-																							p: 1,
-																							minWidth: 0,
-																							mr: 1,
-																						}}
-																						onClick={() =>
-																							changeRequestState(
-																								request.id,
-																								"accepted"
-																							)
-																						}
-																					>
-																						<Check
-																							sx={{
-																								fontSize: 18,
-																							}}
-																						/>
-																					</Button>
-																					<Button
-																						color={
-																							"error"
-																						}
-																						variant="contained"
-																						sx={{
-																							color: "white",
-																							p: 1,
-																							minWidth: 0,
-																						}}
-																						onClick={() =>
-																							changeRequestState(
-																								request.id,
-																								"rejected"
-																							)
-																						}
-																					>
-																						<Close
-																							sx={{
-																								fontSize: 18,
-																							}}
-																						/>
-																					</Button>
-																				</>
-																			)}
-																		</Box>
-																	</Grid>
-																</Card>
-															</Box>
+															<RequestBox
+																key={`req-${idx}`}
+																spacing={
+																	spacing
+																}
+																backgroundColor={requestCardColor(
+																	request.status,
+																	request.from ===
+																		userAuth?.uid
+																)}
+																requestText={
+																	request.text
+																}
+																from={
+																	request.from ===
+																	userAuth?.uid ? (
+																		<b>
+																			나
+																		</b>
+																	) : request.from ===
+																	  "ALL" ? (
+																		<b>
+																			ALL
+																		</b>
+																	) : (
+																		liveData
+																			?.participants[
+																			request
+																				.from
+																		]
+																			?.position ||
+																		"(없음)"
+																	)
+																}
+																to={
+																	request.to ===
+																	userAuth?.uid ? (
+																		<b>
+																			나
+																		</b>
+																	) : request.to ===
+																	  "ALL" ? (
+																		<b>
+																			ALL
+																		</b>
+																	) : (
+																		liveData
+																			?.participants[
+																			request
+																				.to
+																		]
+																			?.position ||
+																		"(없음)"
+																	)
+																}
+																status={requestStatus(
+																	request.status,
+																	request.from ===
+																		userAuth?.uid
+																)}
+																onAccept={() =>
+																	changeRequestStatus(
+																		request.id,
+																		"accepted"
+																	)
+																}
+																onReject={() =>
+																	changeRequestStatus(
+																		request.id,
+																		"rejected"
+																	)
+																}
+															/>
 														)
 												)}
 										</Box>
@@ -725,76 +566,36 @@ const Demo = () => {
 										maxHeight={"15vh"}
 										sx={{ overflowY: "auto", mb: 1 }}
 									>
-										<Button
-											key={"ALL"}
-											onClick={() => setReceiver("ALL")}
-											color={
-												receiver === "ALL"
-													? "info"
-													: "primary"
-											}
-											variant="contained"
-											sx={{
-												fontWeight: "normal",
-												color:
-													receiver === "ALL"
-														? "#fff"
-														: theme.palette.text
-																.primary,
-												p: "8px",
-												pl: 2,
-												pr: 2,
-												mr: spacing,
-												mb: spacing,
-											}}
-										>
-											{"ALL"}
-										</Button>
+										<ParticipantButton
+											spacing={spacing}
+											participant={"ALL"}
+											participantPosition={"ALL"}
+											receiver={receiver}
+											setReceiver={setReceiver}
+										/>
 										{Object.keys(
 											liveData?.participants || {}
 										).map(
 											participant =>
 												participant !==
 													userAuth?.uid && (
-													<Button
+													<ParticipantButton
 														key={participant}
-														onClick={() =>
-															setReceiver(
-																participant
-															)
+														spacing={spacing}
+														participant={
+															participant
 														}
-														color={
-															participant ===
-															receiver
-																? "info"
-																: "primary"
-														}
-														variant="contained"
-														sx={{
-															fontWeight:
-																"normal",
-															color:
-																participant ===
-																receiver
-																	? "#fff"
-																	: theme
-																			.palette
-																			.text
-																			.primary,
-															p: "8px",
-															pl: 2,
-															pr: 2,
-															mr: spacing,
-															mb: spacing,
-														}}
-													>
-														{
+														participantPosition={
 															liveData
 																?.participants[
 																participant
-															].position
+															].position || ""
 														}
-													</Button>
+														receiver={receiver}
+														setReceiver={
+															setReceiver
+														}
+													/>
 												)
 										)}
 									</Grid>
@@ -866,7 +667,10 @@ const Demo = () => {
 										}}
 										columnSpacing={1}
 									>
-										{myRequests.map((request: Request) => (
+										{defaultRequestSets[
+											liveData.participants[userAuth.uid]
+												.requestSet
+										].list.map((request: Request) => (
 											<Grid item xs={6} key={request.id}>
 												<Button
 													variant="contained"
@@ -931,11 +735,11 @@ const Demo = () => {
 					<TextField
 						sx={{ mt: 2 }}
 						autoFocus
-						label="라이브 제목"
+						label="내 포지션"
 						fullWidth
 						color="info"
-						value={liveTitle}
-						onChange={e => setLiveTitle(e.currentTarget.value)}
+						value={positionText}
+						onChange={e => setPositionText(e.currentTarget.value)}
 					/>
 				</DialogContent>
 				<DialogActions>
@@ -958,7 +762,18 @@ const Demo = () => {
 							color: "#007AFF",
 						}}
 						onClick={() => {
-							setLiveData({ ...liveData, title: liveTitle });
+							setLiveData({
+								...liveData,
+								participants: {
+									...liveData?.participants,
+									[userAuth?.uid || ""]: {
+										...liveData?.participants[
+											userAuth?.uid || ""
+										],
+										position: positionText,
+									},
+								},
+							});
 							toast.success("변경되었습니다");
 							setOpen(false);
 						}}

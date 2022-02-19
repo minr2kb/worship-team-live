@@ -1,58 +1,105 @@
 import { RequestSet, RequestPacket, Live } from "./interfaces/types";
 
-export const defaultRequestSet: RequestSet = {
-	name: "기본 요청 리스트",
-	list: [
-		{
-			id: "1",
-			text: "🔈 소리가 안나와요",
-		},
-		{
-			id: "2",
-			text: "🔇 뮤트 해주세요",
-		},
-		{
-			id: "3",
-			text: "👍 볼륨 올려주세요",
-		},
-		{
-			id: "4",
-			text: "👎 볼륨 내려주세요",
-		},
-		{
-			id: "5",
-			text: "🚗 템포 높여주세요",
-		},
-		{
-			id: "6",
-			text: "🐢 템포 내려주세요",
-		},
-		{
-			id: "7",
-			text: "📈 모니터 올려주세요",
-		},
-		{
-			id: "8",
-			text: "📉 모니터 줄여주세요",
-		},
-		{
-			id: "9",
-			text: "🛠 톤 잡아주세요",
-		},
-		{
-			id: "10",
-			text: "💬 자막이 안나와요",
-		},
-		{
-			id: "11",
-			text: "✋ 여기 좀 봐주세요",
-		},
-		{
-			id: "12",
-			text: "🙋 한명만 와주세요",
-		},
-	],
-};
+export const defaultRequestSets: RequestSet[] = [
+	{
+		name: "기본 요청 리스트",
+		list: [
+			{
+				id: "1",
+				text: "🔈 소리가 안나와요",
+			},
+			{
+				id: "2",
+				text: "🔇 뮤트 해주세요",
+			},
+			{
+				id: "3",
+				text: "👍 볼륨 올려주세요",
+			},
+			{
+				id: "4",
+				text: "👎 볼륨 내려주세요",
+			},
+			{
+				id: "5",
+				text: "🚗 템포 높여주세요",
+			},
+			{
+				id: "6",
+				text: "🐢 템포 내려주세요",
+			},
+			{
+				id: "7",
+				text: "📈 모니터 올려주세요",
+			},
+			{
+				id: "8",
+				text: "📉 모니터 줄여주세요",
+			},
+			{
+				id: "9",
+				text: "🛠 톤 잡아주세요",
+			},
+			{
+				id: "10",
+				text: "💬 자막이 안나와요",
+			},
+			{
+				id: "11",
+				text: "✋ 여기 좀 봐주세요",
+			},
+			{
+				id: "12",
+				text: "🙋 한명만 와주세요",
+			},
+		],
+	},
+	{
+		name: "기본 인도자 리스트",
+		list: [
+			{
+				id: "1",
+				text: "🔙 처음으로",
+			},
+			{
+				id: "2",
+				text: "🔁 계속 반복",
+			},
+			{
+				id: "3",
+				text: "👍 키 업",
+			},
+			{
+				id: "4",
+				text: "🫧 잔잔하게",
+			},
+			{
+				id: "5",
+				text: "⏩ 다음곡",
+			},
+			{
+				id: "6",
+				text: "⏪ 이전곡",
+			},
+			{
+				id: "7",
+				text: "↗️ 빌드업",
+			},
+			{
+				id: "8",
+				text: "⛔️ 엔딩",
+			},
+			{
+				id: "9",
+				text: "🚧 브릿지",
+			},
+			{
+				id: "10",
+				text: "🎸 간주",
+			},
+		],
+	},
+];
 
 export const demoRequests: RequestPacket[] = [
 	{

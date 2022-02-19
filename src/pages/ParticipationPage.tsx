@@ -29,20 +29,26 @@ import { db } from "../firebase";
 import { Live, RequestSet } from "../interfaces/types";
 
 interface ParticipationPageProps {
+	code?: string | null;
+	pw?: string | null;
 	setMode: React.Dispatch<
-		React.SetStateAction<"host" | "participant" | null>
+		React.SetStateAction<"host" | "participant" | "setting" | null>
 	>;
 }
 
-const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
+const ParticipationPage: React.VFC<ParticipationPageProps> = ({
+	code,
+	pw,
+	setMode,
+}) => {
 	const navigate = useNavigate();
 	const [user, setUser] = useRecoilState(userRecoil);
 	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
 	const [currentRequestSet, setCurrentRequestSet] = useState<number>(0);
 
 	const [error, setError] = useState<"code" | "position" | null>(null);
-	const [liveCode, setLiveCode] = useState("");
-	const [position, setPosition] = useState("");
+	const [liveCode, setLiveCode] = useState(code || "");
+	const [position, setPosition] = useState(user?.name);
 
 	const [open, setOpen] = useState(false);
 	const [currentLive, setCurrentLive] = useState<Live | null>(null);
@@ -50,7 +56,7 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 	const [dialogMode, setDialogMode] = useState<"continue" | "password">(
 		"continue"
 	);
-	const [password, setPassword] = useState("");
+	const [password, setPassword] = useState<string>(pw || "");
 	const [livePassword, setLivePassword] = useState<string>("");
 
 	const participateInLive = () => {
@@ -89,7 +95,7 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({ setMode }) => {
 	const startLive = () => {
 		if (liveCode.length < 1) {
 			setError("code");
-		} else if (position.length < 1) {
+		} else if (!position || position.length < 1) {
 			setError("position");
 		} else {
 			getDoc(doc(db, "Live", liveCode)).then(docSnapshot => {

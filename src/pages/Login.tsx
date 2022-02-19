@@ -17,8 +17,10 @@ import {
 	browserLocalPersistence,
 } from "firebase/auth";
 import { auth, provider } from "../firebase";
+import { useNavigate } from "react-router-dom";
 
 const Login: React.VFC = () => {
+	const navigate = useNavigate();
 	const theme = useTheme();
 	const signInWithGoogle = () => {
 		if (window.navigator.userAgent.includes("KAKAOTALK")) {
@@ -81,7 +83,7 @@ const Login: React.VFC = () => {
 					</Typography>
 					<Box width="100%">
 						<Tooltip
-							title="라이브 만들기와 나의 요청 저장이 가능해요 😆"
+							title="본 서비스는 구글 계정이 필요해요 🧐"
 							placement="bottom"
 							arrow
 						>
@@ -124,23 +126,24 @@ const Login: React.VFC = () => {
 							</Grid>
 						</Grid>
 						<Tooltip
-							title="라이브 참가만 가능해요 😢"
+							title="대시보드를 먼저 체험해보세요 😎"
 							placement="bottom"
 							arrow
 						>
 							<Button
 								fullWidth
 								variant="contained"
-								onClick={signInAsGuest}
+								onClick={() => navigate("/demo")}
 							>
-								🕶 게스트 로그인
+								🥽 대시보드 데모
 							</Button>
 						</Tooltip>
 					</Box>
 					<Typography
 						variant="body2"
 						sx={{
-							mt: 4,
+							mt: 5,
+							mb: 5,
 						}}
 					>
 						어떤 서비스인지 궁금하신가요?
@@ -158,7 +161,7 @@ const Login: React.VFC = () => {
 							더 알아보기
 						</Link>
 					</Typography>
-					<Typography
+					{/* <Typography
 						variant="body2"
 						sx={{
 							mb: 4,
@@ -179,7 +182,7 @@ const Login: React.VFC = () => {
 						>
 							데모 페이지
 						</Link>
-					</Typography>
+					</Typography> */}
 				</Grid>
 			</Card>
 		</>

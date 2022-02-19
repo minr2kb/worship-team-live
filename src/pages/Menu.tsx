@@ -16,7 +16,7 @@ import { signOut } from "firebase/auth";
 
 interface MenuProps {
 	setMode: React.Dispatch<
-		React.SetStateAction<"host" | "participant" | null>
+		React.SetStateAction<"host" | "participant" | "setting" | null>
 	>;
 }
 
@@ -49,7 +49,7 @@ const Menu: React.VFC<MenuProps> = ({ setMode }) => {
 						{userAuth?.isAnonymous && "게스트"}
 						{" 님"}
 					</Typography>
-					<Box width="100%" mt={isMobile ? 2 : 0}>
+					<Box width="100%" mt={isMobile ? 2 : 0} mb={6}>
 						{!userAuth?.isAnonymous && (
 							<Button
 								fullWidth
@@ -73,15 +73,16 @@ const Menu: React.VFC<MenuProps> = ({ setMode }) => {
 								fullWidth
 								variant="contained"
 								sx={{ mt: 2 }}
-								onClick={() =>
-									navigate("/edit", { replace: false })
-								}
+								// onClick={() =>
+								// 	navigate("/edit", { replace: false })
+								// }
+								onClick={() => setMode("setting")}
 							>
-								📋 내 요청 편집하기
+								⚙️ 설정
 							</Button>
 						)}
 					</Box>
-					<div
+					{/* <div
 						onClick={() => {
 							setIsLoading(true);
 							signOut(auth)
@@ -106,7 +107,7 @@ const Menu: React.VFC<MenuProps> = ({ setMode }) => {
 						>
 							{userAuth?.isAnonymous ? "뒤로가기" : "로그아웃"}
 						</Typography>
-					</div>
+					</div> */}
 				</Grid>
 			</Card>
 		</>

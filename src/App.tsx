@@ -4,7 +4,7 @@ import { ThemeProvider } from "@mui/material";
 import { getTheme } from "./theme";
 import Main from "./pages/Main";
 import LiveDashboard from "./pages/LiveDashboard";
-import { defaultRequestSet } from "./consts";
+import { defaultRequestSets } from "./consts";
 import Demo from "./pages/Demo";
 import { useRecoilState } from "recoil";
 import {
@@ -59,7 +59,7 @@ function App() {
 							const newUserData = {
 								name: user.displayName,
 								currentLive: null,
-								requestList: [defaultRequestSet],
+								requestList: defaultRequestSets,
 							};
 							setDoc(doc(userRef, user.uid), newUserData)
 								.then(res => {
@@ -98,18 +98,25 @@ function App() {
 		return () => noSleep.disable();
 	}, []);
 
-	// useEffect(() => {
-	// 	Notification.requestPermission().then(permission => {
-	// 		if (permission === "granted") {
-	// 			console.log("Notification permission granted.");
-	// 			getToken(messaging, {
-	// 				vapidKey: process.env.REACT_APP_FIREBASE_VAPID_KEY,
-	// 			});
-	// 		} else {
-	// 			console.log("Unable to get permission to notify.");
-	// 		}
-	// 	});
-	// }, []);
+	useEffect(() => {
+		if (
+			navigator.userAgent.match(
+				/inapp|NAVER|KAKAOTALK|Snapchat|Line|WirtschaftsWoche|Thunderbird|Instagram|everytimeApp|WhatsApp|Electron|wadiz|AliApp|zumapp|iPhone(.*)Whale|Android(.*)Whale|kakaostory|band|twitter|DaumApps|DaumDevice\/mobile|FB_IAB|FB4A|FBAN|FBIOS|FBSS\/[^1]/i
+			)
+		) {
+			document.body.innerHTML = "";
+			if (navigator.userAgent.match(/iPhone|iPad/i)) {
+				window.location.href =
+					"ftp://도메인/bridge.html?_targeturl=" +
+					window.location.href;
+			} else {
+				window.location.href =
+					"intent://" +
+					window.location.href.replace(/https?:\/\//i, "") +
+					"#Intent;scheme=http;package=com.android.chrome;end";
+			}
+		}
+	}, []);
 
 	useEffect(() => {
 		window.localStorage.setItem("themeMode", themeMode);

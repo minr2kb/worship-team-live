@@ -5,23 +5,28 @@ import Login from "./Login";
 import Menu from "./Menu";
 import HostingPage from "./HostingPage";
 import ParticipationPage from "./ParticipationPage";
+import Setting from "./Setting";
 import { Box, Fab, Slide } from "@mui/material";
 import { useRecoilState } from "recoil";
 import { userRecoil, isLoadingRecoil, themeModeRecoil } from "../states/recoil";
 import { Bars } from "react-loader-spinner";
 import { DarkMode, LightMode } from "@mui/icons-material";
 import { light } from "@mui/material/styles/createPalette";
+import { useSearchParams } from "react-router-dom";
 
 const SLIDE_DURATION = 200;
 
 const Main: React.VFC = () => {
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [user, setUser] = useRecoilState(userRecoil);
 	const [isLoading, setIsLoading] = useRecoilState(isLoadingRecoil);
 	const [themeMode, setThemeMode] = useRecoilState(themeModeRecoil);
-	const [mode, setMode] = useState<"host" | "participant" | null>(null);
-	const [transition, setTransition] = useState<"host" | "participant" | null>(
-		null
+	const [mode, setMode] = useState<"host" | "participant" | "setting" | null>(
+		searchParams.get("code") ? "participant" : null
 	);
+	const [transition, setTransition] = useState<
+		"host" | "participant" | "setting" | null
+	>(searchParams.get("code") ? "participant" : null);
 
 	useEffect(() => {
 		if (!window.navigator.onLine) {
@@ -83,8 +88,28 @@ const Main: React.VFC = () => {
 									>
 										<Box width={"100vw"}>
 											<ParticipationPage
+												code={searchParams.get("code")}
+												pw={searchParams.get("pw")}
 												setMode={setMode}
 											/>
+										</Box>
+									</Slide>
+								)}
+								{(mode === "setting" ||
+									transition === "setting") && (
+									<Slide
+										direction="left"
+										in={
+											mode === "setting" &&
+											transition === "setting"
+										}
+										mountOnEnter
+										unmountOnExit
+										timeout={SLIDE_DURATION}
+										addEndListener={endTransition}
+									>
+										<Box width={"100vw"}>
+											<Setting setMode={setMode} />
 										</Box>
 									</Slide>
 								)}

@@ -40,7 +40,7 @@ import { Live, RequestSet } from "../interfaces/types";
 
 interface HostingPageProps {
 	setMode: React.Dispatch<
-		React.SetStateAction<"host" | "participant" | null>
+		React.SetStateAction<"host" | "participant" | "setting" | null>
 	>;
 }
 
@@ -55,7 +55,7 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 	>(null);
 	const [open, setOpen] = useState(false);
 	const [liveTitle, setLiveTitle] = useState("");
-	const [position, setPosition] = useState("");
+	const [position, setPosition] = useState(user?.name);
 	const [password, setPassword] = useState<string | null>(null);
 	const [currentLive, setCurrentLive] = useState<Live | null>(null);
 
@@ -75,15 +75,15 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 	const startLive = () => {
 		if (liveTitle.length < 1) {
 			setError("title");
-		} else if (position.length < 1) {
+		} else if (!position || position.length < 1) {
 			setError("position");
-		} else if (password !== null && !/[a-zA-Z0-9]/.test(password)) {
+		} else if (password !== null && /[^a-zA-Z0-9]/.test(password)) {
 			setError("password");
 		} else {
 			setError(null);
 			if (userAuth?.uid) {
 				const toastId = toast.loading("라이브 생성중...");
-				deleteLives();
+				// deleteLives();
 				getDoc(doc(db, "Live", "total"))
 					.then(docSnap => {
 						if (docSnap.exists()) {
