@@ -8,11 +8,8 @@ import {
 	useMediaQuery,
 	useTheme,
 } from "@mui/material";
-import { useRecoilState } from "recoil";
-import { isLoadingRecoil, userAuthRecoil } from "../states/recoil";
-import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
-import { signOut } from "firebase/auth";
+import { useRecoilValue } from "recoil";
+import { userAuthRecoil } from "../states/recoil";
 
 interface MenuProps {
 	setMode: React.Dispatch<
@@ -21,10 +18,8 @@ interface MenuProps {
 }
 
 const Menu: React.VFC<MenuProps> = ({ setMode }) => {
-	const [isLoading, setIsLoading] = useRecoilState(isLoadingRecoil);
-	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
+	const userAuth = useRecoilValue(userAuthRecoil);
 	const theme = useTheme();
-	const navigate = useNavigate();
 	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
 
 	return (

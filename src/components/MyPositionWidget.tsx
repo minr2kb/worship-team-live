@@ -2,6 +2,7 @@ import { Edit } from "@mui/icons-material";
 import { Typography, useTheme } from "@mui/material";
 import React from "react";
 import Card from "./Card";
+import ParticipantButton from "./ParticipantButton";
 
 interface MyPositionWidgetProps {
 	position: string;
@@ -30,6 +31,13 @@ const MyPositionWidget: React.VFC<MyPositionWidgetProps> = ({
 					}
 				}
 			>
+				{/* <ParticipantButton
+					spacing={0}
+					participant={position}
+					participantPosition={position}
+					receiver={""}
+					setReceiver={onClick}
+				/> */}
 				<div
 					style={{
 						display: "flex",
@@ -42,7 +50,8 @@ const MyPositionWidget: React.VFC<MyPositionWidgetProps> = ({
 					<Edit
 						color="secondary"
 						sx={{
-							fontSize: 15,
+							fontSize: 14,
+							ml: 0.3,
 						}}
 					/>
 				</div>

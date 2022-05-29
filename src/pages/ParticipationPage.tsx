@@ -206,6 +206,7 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({
 						label="라이브 코드"
 						variant="standard"
 						color="info"
+						sx={{ backgroundColor: "transparent" }}
 						value={liveCode}
 						onChange={e => setLiveCode(e.target.value)}
 						error={error === "code"}
@@ -216,7 +217,7 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({
 						label="나의 포지션"
 						variant="standard"
 						color="info"
-						sx={{ mt: 3 }}
+						sx={{ mt: 3, backgroundColor: "transparent" }}
 						value={position}
 						onChange={e => setPosition(e.target.value)}
 						error={error === "position"}
@@ -300,7 +301,7 @@ const ParticipationPage: React.VFC<ParticipationPageProps> = ({
 					<>
 						<DialogContent>
 							<TextField
-								sx={{ mt: 2 }}
+								sx={{ mt: 2, backgroundColor: "transparent" }}
 								autoFocus
 								label="비밀번호"
 								fullWidth

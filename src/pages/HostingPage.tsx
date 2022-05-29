@@ -15,10 +15,9 @@ import {
 	Dialog,
 	DialogContentText,
 	Switch,
-	useTheme,
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { userRecoil, userAuthRecoil } from "../states/recoil";
 import {
 	collection,
@@ -46,9 +45,8 @@ interface HostingPageProps {
 
 const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 	const navigate = useNavigate();
-	const theme = useTheme();
 	const [user, setUser] = useRecoilState(userRecoil);
-	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
+	const userAuth = useRecoilValue(userAuthRecoil);
 	const [currentRequestSet, setCurrentRequestSet] = useState<number>(0);
 	const [error, setError] = useState<
 		"title" | "position" | "password" | null
@@ -57,6 +55,7 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 	const [liveTitle, setLiveTitle] = useState("");
 	const [position, setPosition] = useState(user?.name);
 	const [password, setPassword] = useState<string | null>(null);
+	const [fixedCode, setFixedCode] = useState<string | null>(null);
 	const [currentLive, setCurrentLive] = useState<Live | null>(null);
 
 	const deleteLives = () => {
@@ -95,37 +94,40 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 								count: increment(1),
 							});
 
-							setDoc(doc(collection(db, "Live"), code), {
-								title: liveTitle,
-								code: code,
-								password: password,
-								host: userAuth?.uid,
-								createdTime: serverTimestamp(),
-								participants: {
-									[userAuth?.uid]: {
-										position: position,
-										isVerified: true,
-										requestSet: currentRequestSet,
+							setDoc(
+								doc(collection(db, "Live"), fixedCode || code),
+								{
+									title: liveTitle,
+									code: fixedCode || code,
+									password: password,
+									host: userAuth?.uid,
+									createdTime: serverTimestamp(),
+									participants: {
+										[userAuth?.uid]: {
+											position: position,
+											isVerified: true,
+											requestSet: currentRequestSet,
+										},
 									},
-								},
-								requests: [],
-							}).then(res => {
+									requests: [],
+								}
+							).then(res => {
 								console.log("Hosted live successfully");
 
 								updateDoc(
 									doc(collection(db, "User"), userAuth?.uid),
 									{
-										currentLive: code,
+										currentLive: fixedCode || code,
 									}
 								)
 									.then(res => {
 										if (user)
 											setUser({
 												...user,
-												currentLive: code,
+												currentLive: fixedCode || code,
 											});
 										toast.dismiss(toastId);
-										navigate(`/live/${code}`);
+										navigate(`/live/${fixedCode || code}`);
 									})
 									.catch(err => {
 										console.log(err);
@@ -199,6 +201,7 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 
 	useEffect(() => {
 		queryCurrentLive();
+		console.log(userAuth, user);
 	}, []);
 
 	return (
@@ -244,6 +247,7 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 						label="라이브 제목"
 						variant="standard"
 						color="info"
+						sx={{ backgroundColor: "transparent" }}
 						value={liveTitle}
 						onChange={e => setLiveTitle(e.target.value)}
 						error={error === "title"}
@@ -254,7 +258,7 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 						label="나의 포지션"
 						variant="standard"
 						color="info"
-						sx={{ mt: 3 }}
+						sx={{ mt: 3, backgroundColor: "transparent" }}
 						value={position}
 						onChange={e => setPosition(e.target.value)}
 						error={error === "position"}
@@ -285,6 +289,25 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 					<Grid container alignItems={"center"}>
 						<Switch
 							color="info"
+							value={fixedCode ? true : false}
+							onChange={e => {
+								e.target.checked
+									? setFixedCode(
+											(userAuth?.uid || "aaaaaa").slice(
+												0,
+												6
+											)
+									  )
+									: setFixedCode(null);
+							}}
+						/>
+						<Typography>
+							고정코드로 생성 <b>{fixedCode}</b>
+						</Typography>
+					</Grid>
+					<Grid container alignItems={"center"}>
+						<Switch
+							color="info"
 							value={password ? true : false}
 							onChange={e => {
 								e.target.checked
@@ -300,6 +323,7 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 							label="비밀번호"
 							variant="standard"
 							color="info"
+							sx={{ backgroundColor: "transparent" }}
 							value={password || ""}
 							onChange={e => setPassword(e.target.value)}
 							error={error === "password"}
@@ -308,9 +332,10 @@ const HostingPage: React.VFC<HostingPageProps> = ({ setMode }) => {
 					)}
 
 					<Tooltip
-						title="⏰ 24시간 이후에는 자동 삭제가 되는 점 참고해주세요!"
+						title="⏰ 24시간 이후에는 자동 종료가 되는 점 참고해주세요!"
 						placement="bottom"
 						arrow
+						enterTouchDelay={0}
 					>
 						<Button
 							fullWidth

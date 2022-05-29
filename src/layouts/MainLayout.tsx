@@ -18,15 +18,15 @@ const MainLayout: React.VFC<MainLayoutProps> = ({ children }) => {
 			minHeight="500px"
 		>
 			<Grid
-				container
-				width={"100vw"}
-				height={height ? height : "100vh"}
-				justifyContent={"center"}
-				alignItems={"flex-end"}
-				position={"absolute"}
-				zIndex={-1}
+				sx={{
+					position: "fixed",
+					bottom: 0,
+					mb: 1,
+					width: "100%",
+					textAlign: "center",
+				}}
 			>
-				<Typography variant="body2" mb={1} color="text.primary">
+				<Typography variant="body2" color="text.primary">
 					© 2021. (Kyungbae Min) all rights reserved
 				</Typography>
 			</Grid>

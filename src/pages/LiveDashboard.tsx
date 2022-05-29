@@ -21,19 +21,10 @@ import {
 	Switch,
 	NativeSelect,
 } from "@mui/material";
-import {
-	ContentCopy,
-	Edit,
-	Check,
-	Close,
-	ArrowRightAlt,
-	Send,
-	Assignment,
-	Announcement,
-} from "@mui/icons-material";
+import { Send, Assignment, Announcement } from "@mui/icons-material";
 import { RequestPacket, Live, Request, RequestSet } from "../interfaces/types";
 import { use100vh } from "react-div-100vh";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { userRecoil, userAuthRecoil, themeModeRecoil } from "../states/recoil";
 import {
 	collection,
@@ -43,7 +34,6 @@ import {
 	arrayUnion,
 	deleteDoc,
 	deleteField,
-	Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { Bars } from "react-loader-spinner";
@@ -62,11 +52,10 @@ const LiveDashboard = () => {
 	const theme = useTheme();
 	const navigate = useNavigate();
 
-	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
 	const isTablet = useMediaQuery(theme.breakpoints.down("tablet"));
 	const [themeMode, setThemeMode] = useRecoilState(themeModeRecoil);
-	const [user, setUser] = useRecoilState(userRecoil);
-	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
+	const user = useRecoilValue(userRecoil);
+	const userAuth = useRecoilValue(userAuthRecoil);
 	const [isLoading, setIsLoading] = useState(true);
 	const [liveData, setLiveData] = useState<Live | null>(null);
 	const [receiver, setReceiver] = useState<string | null>(null);
@@ -759,6 +748,23 @@ const LiveDashboard = () => {
 												</Button>
 											</Grid>
 										))}
+										<Grid item xs={6}>
+											<Button
+												variant="outlined"
+												sx={{
+													width: "100%",
+													mb: 1,
+													pt: 3,
+													pb: 3,
+													textDecoration: "underline",
+												}}
+												onClick={() =>
+													navigate(`/edit`)
+												}
+											>
+												요청 편집하기
+											</Button>
+										</Grid>
 									</Grid>
 								</Box>
 							</Box>

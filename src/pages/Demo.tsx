@@ -26,22 +26,13 @@ import {
 	DialogActions,
 	Switch,
 	NativeSelect,
+	Popover,
 } from "@mui/material";
-import {
-	ContentCopy,
-	Edit,
-	Check,
-	Close,
-	ArrowRightAlt,
-	Send,
-	Assignment,
-	Announcement,
-} from "@mui/icons-material";
+import { Send, Assignment, Announcement } from "@mui/icons-material";
 import { useRecoilState } from "recoil";
 import { themeModeRecoil } from "../states/recoil";
 import { RequestPacket, Live, Request, RequestSet } from "../interfaces/types";
 import { use100vh } from "react-div-100vh";
-import { CopyToClipboard } from "react-copy-to-clipboard";
 import { Bars } from "react-loader-spinner";
 import MainLayout from "../layouts/MainLayout";
 import LiveInfoWidget from "../components/LiveInfoWidget";
@@ -57,15 +48,16 @@ const Demo = () => {
 	const theme = useTheme();
 	const navigate = useNavigate();
 	const [themeMode, setThemeMode] = useRecoilState(themeModeRecoil);
-	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
 	const isTablet = useMediaQuery(theme.breakpoints.down("tablet"));
 	const userAuth = { uid: "0" };
 	const [isLoading, setIsLoading] = useState(true);
 	const [liveData, setLiveData] = useState<Live>(demoLiveData);
 	const [receiver, setReceiver] = useState<string | null>(null);
 	const [page, setPage] = useState(0);
-	// const myRequests =
-	// 	defaultRequestSets[liveData.participants[userAuth.uid].requestSet].list;
+	const [popoverAnchorEl, setPopoverAnchorEl] = useState<null | HTMLElement>(
+		null
+	);
+	const popoverOpen = Boolean(popoverAnchorEl);
 	const [alertCount, setAlertCount] = useState(0);
 	const [detailedRequest, setDetailedRequest] = useState("");
 	const [open, setOpen] = useState(false);
@@ -75,6 +67,10 @@ const Demo = () => {
 	const LiveDataRef = useRef<Live>(demoLiveData);
 
 	const height = use100vh();
+
+	const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+		setPopoverAnchorEl(event.currentTarget);
+	};
 
 	const requestCardColor = (
 		status: "unchecked" | "accepted" | "rejected",
@@ -782,6 +778,20 @@ const Demo = () => {
 					</Button>
 				</DialogActions>
 			</Dialog>
+			<Popover
+				// id={id}
+				open={popoverOpen}
+				anchorEl={popoverAnchorEl}
+				onClose={() => setPopoverAnchorEl(null)}
+				anchorOrigin={{
+					vertical: "bottom",
+					horizontal: "left",
+				}}
+			>
+				<Typography sx={{ p: 2 }}>
+					The content of the Popover.
+				</Typography>
+			</Popover>
 		</>
 	);
 };

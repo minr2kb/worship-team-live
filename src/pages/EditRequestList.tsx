@@ -237,29 +237,27 @@ const EditRequestList = () => {
 						<Grid
 							container
 							justifyContent={
-								isMobile ? "space-between" : "center"
+								isMobile ? "space-between" : "space-evenly"
 							}
 							mt={3}
 							mb={3}
 						>
-							{isMobile && (
-								<IconButton
-									sx={{ p: 0 }}
-									onClick={() => {
-										navigate("/");
-									}}
-								>
-									<ArrowBack color="secondary" />
-								</IconButton>
-							)}
+							<IconButton
+								sx={{ p: 0 }}
+								onClick={() => {
+									navigate(-1);
+								}}
+							>
+								<ArrowBack color="secondary" />
+							</IconButton>
+
 							<Typography variant="h1" textAlign={"center"}>
 								요청 편집하기
 							</Typography>
-							{isMobile && (
-								<IconButton sx={{ p: 0, visibility: "hidden" }}>
-									<ArrowBack color="secondary" />
-								</IconButton>
-							)}
+
+							<IconButton sx={{ p: 0, visibility: "hidden" }}>
+								<ArrowBack color="secondary" />
+							</IconButton>
 						</Grid>
 					</Box>
 

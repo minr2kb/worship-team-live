@@ -9,7 +9,7 @@ import {
 	useTheme,
 	IconButton,
 } from "@mui/material";
-import { useRecoilState } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { isLoadingRecoil, userAuthRecoil } from "../states/recoil";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
@@ -23,8 +23,8 @@ interface SettingProps {
 }
 
 const Setting: React.VFC<SettingProps> = ({ setMode }) => {
-	const [isLoading, setIsLoading] = useRecoilState(isLoadingRecoil);
-	const [userAuth, setUserAuth] = useRecoilState(userAuthRecoil);
+	const setIsLoading = useSetRecoilState(isLoadingRecoil);
+	const userAuth = useRecoilValue(userAuthRecoil);
 	const theme = useTheme();
 	const navigate = useNavigate();
 	const isMobile = useMediaQuery(theme.breakpoints.down("mobile"));
@@ -61,13 +61,6 @@ const Setting: React.VFC<SettingProps> = ({ setMode }) => {
 						>
 							설정
 						</Typography>
-						{/* <Typography
-							width={"100%"}
-							variant="body1"
-							sx={{ mb: 2 }}
-						>
-							라이브의 시작을 위해 정보를 입력해주세요.
-						</Typography> */}
 					</Grid>
 					<Box width="100%" mt={isMobile ? 2 : 0}>
 						<Button
@@ -92,26 +85,9 @@ const Setting: React.VFC<SettingProps> = ({ setMode }) => {
 								// 	"https://minr2kb.notion.site/df3634209d394602b37c41f7a91a1486"
 								// )
 							}
-							// sx={{ mb: 2 }}
 						>
 							💡 서비스 소개
 						</Button>
-						{/* <Button
-							fullWidth
-							variant="contained"
-							onClick={() => {
-								setIsLoading(true);
-								signOut(auth)
-									.then(() => {
-										window.location.reload();
-									})
-									.catch(err => {
-										console.log(err);
-									});
-							}}
-						>
-							🔒 로그아웃하기
-						</Button> */}
 					</Box>
 					<div
 						onClick={() => {

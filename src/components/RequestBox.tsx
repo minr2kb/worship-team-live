@@ -88,6 +88,7 @@ const RequestBox: React.VFC<RequestBoxProps> = ({
 								variant="body1"
 								sx={{
 									whiteSpace: "nowrap",
+									ml: 1,
 								}}
 							>
 								{status}

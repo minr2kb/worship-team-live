@@ -161,28 +161,6 @@ const Login: React.VFC = () => {
 							더 알아보기
 						</Link>
 					</Typography>
-					{/* <Typography
-						variant="body2"
-						sx={{
-							mb: 4,
-							mt: 0.5,
-						}}
-					>
-						사용방식이 궁금하신가요?
-						<Link
-							href="/demo"
-							sx={{
-								fontWeight: "bold",
-								color: theme.palette.secondary.main,
-								textDecorationColor:
-									theme.palette.secondary.main,
-								ml: "7px",
-								cursor: "pointer",
-							}}
-						>
-							데모 페이지
-						</Link>
-					</Typography> */}
 				</Grid>
 			</Card>
 		</>

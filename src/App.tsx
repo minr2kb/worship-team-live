@@ -98,25 +98,25 @@ function App() {
 		return () => noSleep.disable();
 	}, []);
 
-	useEffect(() => {
-		if (
-			navigator.userAgent.match(
-				/inapp|NAVER|KAKAOTALK|Snapchat|Line|WirtschaftsWoche|Thunderbird|Instagram|everytimeApp|WhatsApp|Electron|wadiz|AliApp|zumapp|iPhone(.*)Whale|Android(.*)Whale|kakaostory|band|twitter|DaumApps|DaumDevice\/mobile|FB_IAB|FB4A|FBAN|FBIOS|FBSS\/[^1]/i
-			)
-		) {
-			document.body.innerHTML = "";
-			if (navigator.userAgent.match(/iPhone|iPad/i)) {
-				window.location.href =
-					"ftp://도메인/bridge.html?_targeturl=" +
-					window.location.href;
-			} else {
-				window.location.href =
-					"intent://" +
-					window.location.href.replace(/https?:\/\//i, "") +
-					"#Intent;scheme=http;package=com.android.chrome;end";
-			}
-		}
-	}, []);
+	// useEffect(() => {
+	// 	if (
+	// 		navigator.userAgent.match(
+	// 			/inapp|NAVER|KAKAOTALK|Snapchat|Line|WirtschaftsWoche|Thunderbird|Instagram|everytimeApp|WhatsApp|Electron|wadiz|AliApp|zumapp|iPhone(.*)Whale|Android(.*)Whale|kakaostory|band|twitter|DaumApps|DaumDevice\/mobile|FB_IAB|FB4A|FBAN|FBIOS|FBSS\/[^1]/i
+	// 		)
+	// 	) {
+	// 		document.body.innerHTML = "";
+	// 		if (navigator.userAgent.match(/iPhone|iPad/i)) {
+	// 			window.location.href =
+	// 				"ftp://도메인/bridge.html?_targeturl=" +
+	// 				window.location.href;
+	// 		} else {
+	// 			window.location.href =
+	// 				"intent://" +
+	// 				window.location.href.replace(/https?:\/\//i, "") +
+	// 				"#Intent;scheme=http;package=com.android.chrome;end";
+	// 		}
+	// 	}
+	// }, []);
 
 	useEffect(() => {
 		window.localStorage.setItem("themeMode", themeMode);

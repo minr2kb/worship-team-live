@@ -7,19 +7,19 @@ import HostingPage from "./HostingPage";
 import ParticipationPage from "./ParticipationPage";
 import Setting from "./Setting";
 import { Box, Fab, Slide } from "@mui/material";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { userRecoil, isLoadingRecoil, themeModeRecoil } from "../states/recoil";
 import { Bars } from "react-loader-spinner";
 import { DarkMode, LightMode } from "@mui/icons-material";
-import { light } from "@mui/material/styles/createPalette";
 import { useSearchParams } from "react-router-dom";
+import VideoLayout from "../layouts/VideoLayout";
 
 const SLIDE_DURATION = 200;
 
 const Main: React.VFC = () => {
-	const [searchParams, setSearchParams] = useSearchParams();
-	const [user, setUser] = useRecoilState(userRecoil);
-	const [isLoading, setIsLoading] = useRecoilState(isLoadingRecoil);
+	const [searchParams, _setSearchParams] = useSearchParams();
+	const user = useRecoilValue(userRecoil);
+	const isLoading = useRecoilValue(isLoadingRecoil);
 	const [themeMode, setThemeMode] = useRecoilState(themeModeRecoil);
 	const [mode, setMode] = useState<"host" | "participant" | "setting" | null>(
 		searchParams.get("code") ? "participant" : null
@@ -41,7 +41,7 @@ const Main: React.VFC = () => {
 	return (
 		<>
 			<Toaster position="bottom-center" />
-			<MainLayout>
+			<VideoLayout url={"https://youtu.be/F8ZihHpG9Q0"}>
 				{isLoading ? (
 					<>
 						<Bars
@@ -131,7 +131,7 @@ const Main: React.VFC = () => {
 						)}
 					</>
 				)}
-			</MainLayout>
+			</VideoLayout>
 			{!isLoading && (
 				<Fab
 					sx={{
@@ -140,12 +140,12 @@ const Main: React.VFC = () => {
 						right: "10%",
 					}}
 					size={"large"}
-					color={"secondary"}
+					color={"primary"}
 					onClick={() =>
-						setThemeMode(themeMode == "light" ? "dark" : "light")
+						setThemeMode(themeMode === "light" ? "dark" : "light")
 					}
 				>
-					{themeMode === "light" ? <DarkMode /> : <LightMode />}
+					{themeMode === "light" ? <LightMode /> : <DarkMode />}
 				</Fab>
 			)}
 		</>
