@@ -60,7 +60,7 @@ const VideoLayout: React.FC<VideoLayoutProps> = ({ url, children }) => {
 				}}
 				muted
 				playing
-				playsInline
+				playsinline
 				width="450vw"
 				height="120vh"
 				url={url}
