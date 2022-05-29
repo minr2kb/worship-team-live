@@ -41,7 +41,7 @@ const Main: React.VFC = () => {
 	return (
 		<>
 			<Toaster position="bottom-center" />
-			<VideoLayout url={"https://youtu.be/F8ZihHpG9Q0"}>
+			<VideoLayout url={"/worship_background.mp4"}>
 				{isLoading ? (
 					<>
 						<Bars
