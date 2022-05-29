@@ -1,6 +1,6 @@
 {
 	"name": "worship-team-live",
-	"version": "0.5.0",
+	"version": "0.5.2",
 	"private": true,
 	"dependencies": {
 		"@dnd-kit/core": "5.0.1",
