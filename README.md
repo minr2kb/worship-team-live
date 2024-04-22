@@ -41,7 +41,7 @@ Backend
 ### UI 디자인
 [Figma](https://www.figma.com/embed?embed_host=notion&url=https%3A%2F%2Fwww.figma.com%2Ffile%2FzXh3hUi41JhsyobXucJnga%2F%25EC%25B0%25AC%25EC%2596%2591%25ED%258C%2580-%25EC%2586%258C%25ED%2586%25B5-%25EC%258B%259C%25EC%258A%25A4%25ED%2585%259C%3Fnode-id%3D0%253A1)
 
-## DB 디자인
+## 데이터 구조
 
 ### User
 
