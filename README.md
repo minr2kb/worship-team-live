@@ -1,4 +1,6 @@
 # '찬양팀 라이브' 프로젝트 소스코드
+## 서비스 주소
+https://worship-team-live.web.app/
 
 ## 기획
 
