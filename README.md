@@ -1,4 +1,7 @@
 # '찬양팀 라이브' 프로젝트 소스코드
+![worship-team-live](https://github.com/user-attachments/assets/0ae07454-d926-436e-8c1f-a16ea62d41db)
+
+
 ## 서비스 주소
 https://worship-team-live.web.app/
 
