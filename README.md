@@ -1,52 +1,65 @@
 # '찬양팀 라이브' 프로젝트 소스코드
 ![worship-team-live](https://github.com/user-attachments/assets/0ae07454-d926-436e-8c1f-a16ea62d41db)
 
+## 프로젝트 개요
+찬양팀 라이브는 예배/찬양 상황에서 팀원들 간의 실시간 소통을 돕는 웹 애플리케이션입니다. 특히 소리를 내거나 손동작을 할 수 없는 상황에서도 간단한 터치만으로 의사소통이 가능하도록 설계되었습니다.
 
-## 서비스 주소
-https://worship-team-live.web.app/
+## 핵심 기능
+### 실시간 라이브 세션
+- 방 생성 및 참여
+    - 고유한 6자리 코드 생성 시스템
+    - 선택적 비밀번호 보호 기능
+    - 호스트/참여자 권한 구분
+    - 실시간 요청 시스템
+- 실시간 요청 시스템
+    - Firebase Firestore를 활용한 실시간 데이터 동기화
+    - 요청 상태 관리 (확인중/수락됨/거절됨)
+    - 푸시 알림 기능
 
-## 기획
+### 사용자 경험 최적화
 
-### 계기
+- 반응형 레이아웃
+    - Material UI 기반의 모바일 최적화 디자인
+    - 태블릿/데스크톱 대응 레이아웃
+- NoSleep으로 모바일 화면 꺼짐 방지
+- MUII 활용 다크모드 지원
 
-찬양팀 사역을 하다보면 멤버들 간의 소통이 필요하다. 악기 팀 사이, 싱어와 방송팀 사이에 등등. 그러나 연습시간 혹은 예배시간에는 멤버들 간의 원활한 소통과 피드백이 상당히 어려운 것이 현실이다.
+### 커스터마이저블 요청 시스템
 
-거리상 멀어서 부르는게 쉽지 않기도 하지만, 심지어 찬양이 시작되기라도 하면 소리를 지를 수도, 손을 흔들어 표시하기도 어렵다. 특히 악기 연주팀은 손이 바쁘게 움직이기 때문에 카톡을 할 여건조차 되지 않는다.
+- 개인화된 요청 세트
+    - 사용자별 커스텀 요청 리스트 관리
+    - 드래그 앤 드롭 기반 요청 순서 변경
+    - 실시간 요청 세트 전환 기능
 
-소통을 방해하는 상황적 요인들이 뚜렷하게 드러남에도 불구하고 아직까지는 적절한 대안 혹은 시스템이 없다. 그렇다면 시스템 구축 금액에 대한 부담이 없고, 조작이 매우 단순하며, 제스쳐나 소리가 없이 디스플레이를 통해 소통이 가능한 플랫폼을 구축한다면 어떨까?
+## 기술 스택
 
-### 주요 서비스
+### 프론트엔드
+- TypeScript + React.js
+- Material UI
+- react-hot-toast (토스트 알림)
+- Recoil (상태 관리)
 
-찬양팀은 연습이나 예배 등의 상황에 방(라이브)을 생성한다. 그 방에 다른 멤버들이 함께 참가할 수 있고, 각자가 저장해놓은 요청 버튼을 이용해 간단하게 소통이 가능하다. 또한 요청이 오가는 것을 실시간으로 확인 가능하다.
+### 백엔드/인프라
+- Firebase Authentication
+    - Google OAuth 인증
+    - 익명 로그인 지원
+- Firebase Firestore
+    - 실시간 데이터베이스
+    - 요청/응답 처리
+    - Firebase Cloud Messaging
 
-### 서비스 플로우
+
+## 서비스 플로우
+
 [서비스 플로우](https://miro.com/app/board/uXjVOWMhuW4=/?invite_link_id=84353965716)
 
-### 비즈니스 모델
 
-현재는 무료서비스이지만, 만약 미래에 서비스 규모가 커지면 서비 비용이 청구되거나 앱개발이 들어 갈 수도 있다. 초기는 후원계좌, 후에는 광고 혹은 유료 서비스까지 고려해야 할 수도.
 
-## 개발
+## UI 디자인
 
-### 기술 스택
-
-Frontend
-
-- TypeScript
-- React.js
-- Material UI
-- react-hot-toast
-
-Backend
-
-- Firebase auth
-- Firebase firestore
-- Firebase Hosting
-
-### UI 디자인
 [Figma](https://www.figma.com/embed?embed_host=notion&url=https%3A%2F%2Fwww.figma.com%2Ffile%2FzXh3hUi41JhsyobXucJnga%2F%25EC%25B0%25AC%25EC%2596%2591%25ED%258C%2580-%25EC%2586%258C%25ED%2586%25B5-%25EC%258B%259C%25EC%258A%25A4%25ED%2585%259C%3Fnode-id%3D0%253A1)
 
-## 데이터 구조
+## DB 디자인
 
 ### User
 
@@ -55,16 +68,16 @@ interface User {
 	name: string | null;
 	currentLive: string | null;
 	requestList: [
-    {
-	    name: string;
-	    list: [
-        {
-	        id: string;
-	        text: string;
-        }
-      ];
-    }
-  ];
+		{
+			name: string;
+			list: [
+				{
+					id: string;
+					text: string;
+				}
+			];
+		}
+	];
 }
 ```
 
@@ -85,29 +98,34 @@ interface Live {
 		};
 	};
 	requests: [
-    {
-	    id: string;
-	    text: string;
-	    from: Uid;
-	    to: Uid;
-	    status: "unchecked" | "accepted" | "rejected";
-    }
-  ];
+		{
+			id: string;
+			text: string;
+			from: Uid;
+			to: Uid;
+			status: ReqStatus;
+		}
+	];
 }
 ```
 
-### 기능 구현
+## 라우터 & 상태 체크
 
 Routes
 
-- "/":	메인 페이지, 로그인, 라이브 만들기, 참가하기
-- "/edit":	요청 리스트 수정 페이지
-- "/live/:id":	id에 해당하는 라이브
-- "/demo"	대시보드 demo
+-   "/": 메인 페이지, 로그인, 라이브 만들기, 참가하기
+-   "/edit": 요청 리스트 수정 페이지
+-   "/live/:id": id에 해당하는 라이브
+-   "/demo" 대시보드 demo
 
 Request status
 
-|  | unchecked | accepted | rejected |
-| --- | --- | --- | --- |
+|         | unchecked   | accepted    | rejected    |
+| ------- | ----------- | ----------- | ----------- |
 | from me | 흰색/확인중 | 초록/확인됨 | 빨강/거절됨 |
-| to me | 버튼 | 회색/확인함 | 회색/거절함 |
+| to me   | 버튼        | 회색/확인함 | 회색/거절함 |
+
+## 👨‍💻 개발자
+
+- Kyungbae Min - [GitHub](https://github.com/minr2kb)
+- Email: kbmin1129@gmail.com
